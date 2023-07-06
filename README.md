@@ -1,5 +1,5 @@
 <h1 align="center">
- We Ludic
+ API.WeLudic
 </h1>
 
 <p align="center">

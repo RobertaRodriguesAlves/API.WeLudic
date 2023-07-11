@@ -5,4 +5,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.31.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WeLudic.Shared\WeLudic.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -13,4 +13,8 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\WeLudic.Shared\WeLudic.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

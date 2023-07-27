@@ -30,4 +30,8 @@
     <ProjectReference Include="..\..\src\WeLudic.Domain\WeLudic.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Entities\" />
+  </ItemGroup>
+
 </Project>

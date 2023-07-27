@@ -7,6 +7,7 @@ namespace WeLudic.Application.Interfaces;
 
 public interface IAuthService : IAppService, IDisposable
 {
-    Task<Result<TokenResponse>> AuthenticationAsync(AuthenticationRequest request);
+    Task<Result<SignupResponse>> SignUpAsync(SignUpRequest request);
+    Task<Result<TokenResponse>> SignInAsync(SignInRequest request);
     Task<Result<TokenResponse>> RefreshAuthorizationAsync(RefreshAuthenticationRequest request);
 }

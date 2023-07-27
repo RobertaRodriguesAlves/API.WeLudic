@@ -4,9 +4,9 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using WeLudic.Domain.ValueObjects;
 using WeLudic.Infrastructure.Security.Interfaces;
 using WeLudic.Shared.AppSettings;
-using WeLudic.Shared.Constants;
 using WeLudic.Shared.Models;
 
 namespace WeLudic.Infrastructure.Security.Services;
@@ -17,9 +17,9 @@ public sealed class TokenService : ITokenService
 
     public TokenService(IOptions<SecuritySettings> options) => _settings = options.Value;
 
-    public AccessKeys CreateAccessKeys(Guid id, bool isAdmin)
+    public AccessKeys CreateAccessKeys(Guid id, Email email)
     {
-        var claims = GenerateClaims(id, isAdmin);
+        var claims = GenerateClaims(id, email);
         var jwtSecurityToken = GenerateJwtSecurityToken(claims);
         var createdAt = jwtSecurityToken.ValidFrom;
         var expiresAt = jwtSecurityToken.ValidTo;
@@ -31,21 +31,12 @@ public sealed class TokenService : ITokenService
 
     #region Private Methods
 
-    private IEnumerable<Claim> GenerateClaims(Guid id, bool isAdmin)
-    {
-        var claimValue = id.ToString();
-
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, claimValue),
-            new Claim(_settings.ClaimKey, claimValue)
-        };
-
-        if (isAdmin)
-            claims.Add(new Claim(ClaimTypes.Role, Roles.Administrator));
-
-        return claims;
-    }
+    private IEnumerable<Claim> GenerateClaims(Guid id, Email email)
+        => new List<Claim>
+           {
+               new Claim(ClaimTypes.NameIdentifier, email.Address),
+               new Claim(_settings.ClaimKey, id.ToString())
+           };
 
     private JwtSecurityToken GenerateJwtSecurityToken(IEnumerable<Claim> claims)
     {

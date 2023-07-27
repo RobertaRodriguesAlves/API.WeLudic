@@ -1,60 +1,172 @@
+using System.Security.Cryptography;
 using FluentResults;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.Extensions.Logging;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Requests.Auth;
 using WeLudic.Application.Responses;
 using WeLudic.Domain.Entities;
-using WeLudic.Domain.Entities.Common;
+using WeLudic.Domain.Interfaces;
 using WeLudic.Infrastructure.Security.Interfaces;
+using WeLudic.Shared.Errors;
 using WeLudic.Shared.Extensions;
+using WeLudic.Shared.Models;
 
 namespace WeLudic.Application.Services;
 
-public sealed class AuthService : IAuthService
+public class AuthService : IAuthService
 {
     private readonly ITokenService _service;
+    private readonly IUserRepository _repository;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         ITokenService service,
+        IUserRepository repository,
         ILogger<AuthService> logger)
     {
         _service = service;
+        _repository = repository;
         _logger = logger;
     }
 
-    public async Task<Result<TokenResponse>> AuthenticationAsync(AuthenticationRequest request)
+    public async Task<Result<SignupResponse>> SignUpAsync(SignUpRequest request)
     {
+        _logger.LogInformation("Validando informações recebidas");
+
         await request.ValidateAsync();
         if (!request.IsValid)
             return request.ToFail();
 
-        _logger.LogInformation("Consultando ApiKey: {key}...", request.ApiKey);
+        var user = new User().SetUser(
+                    request.Name,
+                    request.Email,
+                    EncryptKey(request.Password));
 
-        //var credenciais = await _repository.GetByIdAsync(request.ApiKey);
-        //if (credenciais is null)
-        //{
-        //    _logger.LogInformation("ApiKey: {key} não encontrada.", request.ApiKey);
-        //    return Result.Fail(new UnauthorizedError($"ApiKey: {request.ApiKey} não encontrada."));
-        //}
+        var createdUser = await _repository.CreateAsync(user);
 
-        //var accessKeys = _service.CreateAccessKeys(credenciais.Email, IsAdmin(credenciais.Email));
+        _logger.LogInformation("Gerando credenciais de acesso");
+
+        var accessKeys = _service.CreateAccessKeys(createdUser.Id, createdUser.Email);
+
+        await UpdatedAccessInformationAsync(createdUser, accessKeys);
+
+        return Result.Ok(new SignupResponse(
+            new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken),
+            new UserResponse(createdUser.Id, createdUser.Name, createdUser.Email)));
     }
 
-    public Task<Result<TokenResponse>> RefreshAuthorizationAsync(RefreshAuthenticationRequest request)
+    public async Task<Result<SigninResponse>> SignInAsync(SignInRequest request)
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("Validando informações recebidas");
+
+        await request.ValidateAsync();
+        if (!request.IsValid)
+            return request.ToFail();
+
+        _logger.LogInformation("Consultando informações.");
+
+        var user = await _repository.GetByEmailAsync(request.Email);
+        if (user is null ||
+            user?.HashedPassword != EncryptKey(request.Password))
+        {
+            _logger.LogError($"Acesso negado, informações não encontradas ou não conferem.");
+            return Result.Fail(new ForbiddenError("Acesso negado"));
+        }
+
+        var accessKeys = _service.CreateAccessKeys(user.Id, user.Email);
+
+        await UpdatedAccessInformationAsync(user, accessKeys);
+
+        return Result.Ok(new SigninResponse(
+            new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken),
+            new UserResponse(user.Id, user.Name, user.Email)));
     }
 
-    public void Dispose()
+    public async Task<Result<TokenResponse>> RefreshAuthenticationAsync(RefreshAuthenticationRequest request)
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("Validando informações recebidas");
+
+        await request.ValidateAsync();
+        if (!request.IsValid)
+            return request.ToFail();
+
+        var user = await _repository.GetByIdAsync(request.Id);
+        if (user is null ||
+            user?.RefreshToken != EncryptKey(user.RefreshToken) ||
+            DateTime.UtcNow > user?.ExpirationAt)
+        {
+            _logger.LogError($"Acesso negado, informações não encontradas ou não conferem.");
+            return Result.Fail(new ForbiddenError("Acesso negado"));
+        }
+
+        var accessKeys = _service.CreateAccessKeys(user.Id, user.Email);
+
+        await UpdatedAccessInformationAsync(user, accessKeys);
+
+        return Result.Ok(new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken));
     }
 
     #region Private Methods
 
-    private static bool IsAdmin(Guid id) => id == BaseEntity.AdminId;
+    private string EncryptKey(string key)
+    {
+        _logger.LogInformation("Criptografando senha");
 
-    private async Task UpdateCredentialsAsync(User )
+        // Generate a 128-bit salt using a sequence of
+        // cryptographically strong random bytes.
+        var salt = RandomNumberGenerator.GetBytes(128 / 8);
+
+        // Derive a 256-bit subkey (use HMACSHA256 with 100,000 iterations)
+        return Convert.ToBase64String(KeyDerivation.Pbkdf2(
+            password: key,
+            salt: salt,
+            prf: KeyDerivationPrf.HMACSHA256,
+            iterationCount: 100000,
+            numBytesRequested: 256 / 8));
+    }
+
+    private async Task UpdatedAccessInformationAsync(User createdUser, AccessKeys accessKeys)
+    {
+        _logger.LogInformation("Atualizando informações de acesso do usuário");
+
+        createdUser.SetAccessToken(EncryptKey(accessKeys.AccessToken));
+        createdUser.SetRefreshToken(EncryptKey(accessKeys.RefreshToken), accessKeys.Expiration);
+        await _repository.UpdateAsync(createdUser);
+    }
+
+    #endregion
+
+    #region IDisposable
+
+    // To detect redundant calls.
+    private bool _disposed;
+
+    // Public implementation of Dispose pattern callable by consumers.
+    ~AuthService()
+    {
+        Dispose(false);
+    }
+
+    // Protected implementation of Dispose pattern.
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    // Protected implementation of Dispose pattern.
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        // Dispose managed state (managed objects).
+        if (disposing)
+            _repository.Dispose();
+
+        _disposed = true;
+    }
+
     #endregion
 }

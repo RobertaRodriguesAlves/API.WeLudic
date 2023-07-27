@@ -19,10 +19,15 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         return user;
     }
 
-    public async Task<User> GetAsync(Email email, CancellationToken cancellationToken = default)
+    public async Task<User> GetByEmailAsync(Email email, CancellationToken cancellationToken = default)
         => await DbSet
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Email.Address == email.Address, cancellationToken);
+            .FirstOrDefaultAsync(p => p.Email.Address.Equals(email.Address), cancellationToken);
+
+    public async Task<User> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        => await DbSet
+        .AsNoTracking()
+        .FirstOrDefaultAsync(p => p.Id.Equals(id), cancellationToken);
 
     public async Task UpdateAsync(User user, CancellationToken cancellationToken = default)
     {

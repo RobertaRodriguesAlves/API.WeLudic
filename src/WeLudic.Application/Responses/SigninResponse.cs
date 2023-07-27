@@ -2,9 +2,9 @@ using WeLudic.Shared.Responses;
 
 namespace WeLudic.Application.Responses;
 
-public sealed class SignupResponse : BaseResponse
+public sealed class SigninResponse : BaseResponse
 {
-    public SignupResponse(TokenResponse accessKeys, UserResponse user)
+    public SigninResponse(TokenResponse accessKeys, UserResponse user)
     {
         AccessKeys = accessKeys;
         User = user;

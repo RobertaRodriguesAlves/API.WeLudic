@@ -35,8 +35,5 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsUnicode(false);
 
         builder.HasQueryFilter(p => !p.IsDeleted);
-
-        builder.HasData(new User()
-            .SetUser("Admin", "admin@weludic.com", "123Mudar"));
     }
 }

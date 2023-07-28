@@ -13,15 +13,15 @@ public sealed class SignUpValidator : AbstractValidator<SignUpRequest>
         RuleFor(user => user.Email)
             .NotEmpty()
             .EmailAddress()
-            .WithMessage("{Property} is invalid.");
+            .WithMessage("Email is invalid.");
 
         RuleFor(user => user.Password)
             .NotEmpty()
             .WithMessage("{Property} cannot be empty.")
-            .MinimumLength(8).WithMessage("Password must be at least 8 characters.")
-            .Matches(@"[A-Z]+").WithMessage("Password must contain at least one uppercase letter.")
-            .Matches(@"[a-z]+").WithMessage("Password must contain at least one lowercase letter.")
-            .Matches(@"[0-9]+").WithMessage("Password must contain at least one number.")
-            .Matches(@"[\!\?\*\.]+").WithMessage("Password must contain at least one (!? *.).");
+            .MinimumLength(8).WithMessage("{Property} must be at least 8 characters.")
+            .Matches(@"[A-Z]+").WithMessage("{Property} must contain at least one uppercase letter.")
+            .Matches(@"[a-z]+").WithMessage("{Property} must contain at least one lowercase letter.")
+            .Matches(@"[0-9]+").WithMessage("{Property} must contain at least one number.")
+            .Matches(@"[\!\?\*\.]+").WithMessage("{Property} must contain at least one (!? *.).");
     }
 }

@@ -10,7 +10,7 @@ public abstract class BaseAuditEntity: IAudit
     public Guid Id { get; private init; } = Guid.NewGuid();
     public string AccessToken { get; private set; }
     public string RefreshToken { get; private set; }
-    public DateTime GeneratedAt { get; private set; }
+    public DateTime? GeneratedAt { get; private set; }
     public DateTime? ExpirationAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
     public DateTime CreatedAt { get; private init; } = DateTime.UtcNow;

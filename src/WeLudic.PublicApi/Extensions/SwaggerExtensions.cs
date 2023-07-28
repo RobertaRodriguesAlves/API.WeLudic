@@ -50,11 +50,6 @@ public static class SwaggerExtensions
             });
 
             options.ResolveConflictingActions(apiDescription => apiDescription.FirstOrDefault());
-
-            //Set the comments path for the Swagger JSON and UI.
-            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
-            options.IncludeXmlComments(xmlPath, true);
         });
 
         services.AddSwaggerGenNewtonsoftSupport();

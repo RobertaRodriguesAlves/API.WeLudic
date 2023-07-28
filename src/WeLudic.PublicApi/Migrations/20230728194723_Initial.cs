@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace WeLudic.PublicApi.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -27,7 +27,7 @@ namespace WeLudic.PublicApi.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     RefreshToken = table.Column<string>(type: "longtext", unicode: false, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    GeneratedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    GeneratedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     ExpirationAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -42,11 +42,6 @@ namespace WeLudic.PublicApi.Migrations
                     table.PrimaryKey("PK_Users", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.InsertData(
-                table: "Users",
-                columns: new[] { "Id", "AccessToken", "CreatedAt", "CreatedBy", "Email", "ExpirationAt", "GeneratedAt", "HashedPassword", "IsDeleted", "LastModified", "LastModifiedBy", "Name", "RefreshToken", "UpdatedAt", "Version" },
-                values: new object[] { new Guid("4b6d0ad8-dbd5-41fd-b6fd-fbed14df495e"), null, new DateTime(2023, 7, 28, 17, 19, 9, 891, DateTimeKind.Utc).AddTicks(4132), null, "admin@weludic.com", null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "123Mudar", false, null, null, "Admin", null, null, 0L });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

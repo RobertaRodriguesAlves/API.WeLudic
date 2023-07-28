@@ -42,7 +42,7 @@ namespace WeLudic.PublicApi.Migrations
                     b.Property<DateTime?>("ExpirationAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateTime>("GeneratedAt")
+                    b.Property<DateTime?>("GeneratedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("HashedPassword")
@@ -77,19 +77,6 @@ namespace WeLudic.PublicApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("4b6d0ad8-dbd5-41fd-b6fd-fbed14df495e"),
-                            CreatedAt = new DateTime(2023, 7, 28, 17, 19, 9, 891, DateTimeKind.Utc).AddTicks(4132),
-                            Email = "admin@weludic.com",
-                            GeneratedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            HashedPassword = "123Mudar",
-                            IsDeleted = false,
-                            Name = "Admin",
-                            Version = 0L
-                        });
                 });
 #pragma warning restore 612, 618
         }

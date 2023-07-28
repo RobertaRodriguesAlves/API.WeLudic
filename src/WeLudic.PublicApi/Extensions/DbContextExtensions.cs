@@ -16,14 +16,14 @@ public static class DbContextExtensions
         {
             var connectionString = serviceProvider.GetRequiredService<IOptions<ConnectionStrings>>().Value;
 
-            options.UseMySql(connectionString.Database, new MySqlServerVersion(new Version(8, 0, 11)), sqlOptions =>
+            options.UseMySql(connectionString.Database, ServerVersion.AutoDetect(connectionString.Database), sqlOptions =>
             {
                 sqlOptions.MigrationsAssembly(AssemblyName);
 
-                // Configurando a resiliência da conexão: https://docs.microsoft.com/en-us/ef/core/miscellaneous/connection-resiliency
+                // Configura a resiliência da conexão: https://docs.microsoft.com/en-us/ef/core/miscellaneous/connection-resiliency
                 sqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
 
-                // Quando for ambiente de desenvolvimento será logado informações detalhadas.
+                // Em ambiente de desenvolvimento é logado informações detalhadas.
                 var environment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 if (environment.IsDevelopment())
                     options.EnableDetailedErrors().EnableSensitiveDataLogging();

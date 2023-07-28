@@ -27,10 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\WeLudic.Application\WeLudic.Application.csproj" />
     <ProjectReference Include="..\WeLudic.Infrastructure\WeLudic.Infrastructure.csproj" />
     <ProjectReference Include="..\WeLudic.Shared\WeLudic.Shared.csproj" />

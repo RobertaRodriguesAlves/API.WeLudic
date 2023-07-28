@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WeLudic.Domain.Entities;
 using WeLudic.Domain.Interfaces;
-using WeLudic.Domain.ValueObjects;
 using WeLudic.Infrastructure.Data.Context;
 using WeLudic.Infrastructure.Data.Repositories.Common;
 
@@ -19,10 +18,10 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         return user;
     }
 
-    public async Task<User> GetByEmailAsync(Email email, CancellationToken cancellationToken = default)
+    public async Task<User> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
         => await DbSet
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Email.Address.Equals(email.Address), cancellationToken);
+            .FirstOrDefaultAsync(p => p.Email.Equals(email), cancellationToken);
 
     public async Task<User> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => await DbSet

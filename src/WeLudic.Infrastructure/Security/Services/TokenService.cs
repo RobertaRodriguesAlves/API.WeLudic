@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using WeLudic.Domain.ValueObjects;
 using WeLudic.Infrastructure.Security.Interfaces;
 using WeLudic.Shared.AppSettings;
 using WeLudic.Shared.Models;
@@ -17,7 +16,7 @@ public sealed class TokenService : ITokenService
 
     public TokenService(IOptions<SecuritySettings> options) => _settings = options.Value;
 
-    public AccessKeys CreateAccessKeys(Guid id, Email email)
+    public AccessKeys CreateAccessKeys(Guid id, string email)
     {
         var claims = GenerateClaims(id, email);
         var jwtSecurityToken = GenerateJwtSecurityToken(claims);
@@ -31,10 +30,10 @@ public sealed class TokenService : ITokenService
 
     #region Private Methods
 
-    private IEnumerable<Claim> GenerateClaims(Guid id, Email email)
+    private IEnumerable<Claim> GenerateClaims(Guid id, string email)
         => new List<Claim>
            {
-               new Claim(ClaimTypes.NameIdentifier, email.Address),
+               new Claim(ClaimTypes.NameIdentifier, email),
                new Claim(_settings.ClaimKey, id.ToString())
            };
 

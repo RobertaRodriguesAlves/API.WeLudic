@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WeLudic.Domain.Entities;
-using WeLudic.Domain.ValueObjects;
 
 namespace WeLudic.Infrastructure.Data.Configurations;
 
@@ -38,6 +37,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasQueryFilter(p => !p.IsDeleted);
 
         builder.HasData(new User()
-            .SetUser("Admin", new Email("admin@weludic.com"), "123Mudar"));
+            .SetUser("Admin", "admin@weludic.com", "123Mudar"));
     }
 }

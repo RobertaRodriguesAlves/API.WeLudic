@@ -6,12 +6,12 @@ public sealed class SignInValidator : AbstractValidator<SignInRequest>
 {
     public SignInValidator()
     {
-        RuleFor(user => user.Email.Address)
+        RuleFor(user => user.Email)
             .NotEmpty()
-            .WithMessage("Email cannot be empty.");
+            .WithMessage("{Property} cannot be empty.");
 
         RuleFor(user => user.Password)
             .NotEmpty()
-            .WithMessage("Password cannot be empty.");
+            .WithMessage("{Property} cannot be empty.");
     }
 }

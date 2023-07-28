@@ -10,10 +10,10 @@ public sealed class SignUpValidator : AbstractValidator<SignUpRequest>
             .NotEmpty()
             .WithMessage("{Property} cannot be empty.");
 
-        RuleFor(user => user.Email.Address)
+        RuleFor(user => user.Email)
             .NotEmpty()
             .EmailAddress()
-            .WithMessage("Email address is invalid.");
+            .WithMessage("{Property} is invalid.");
 
         RuleFor(user => user.Password)
             .NotEmpty()

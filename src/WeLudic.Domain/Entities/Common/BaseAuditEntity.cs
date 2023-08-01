@@ -50,7 +50,7 @@ public abstract class BaseAuditEntity: IAudit
         return this;
     }
 
-    public BaseAuditEntity SetRefreshToken(string refreshToken, DateTime expirationAt)
+    public BaseAuditEntity SetRefreshToken(string refreshToken, DateTime? expirationAt)
     {
         RefreshToken = refreshToken;
         ExpirationAt = expirationAt;

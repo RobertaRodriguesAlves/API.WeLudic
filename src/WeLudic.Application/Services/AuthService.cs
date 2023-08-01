@@ -1,6 +1,4 @@
-using System.Security.Cryptography;
 using FluentResults;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.Extensions.Logging;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Requests.Auth;
@@ -11,6 +9,7 @@ using WeLudic.Infrastructure.Security.Interfaces;
 using WeLudic.Shared.Errors;
 using WeLudic.Shared.Extensions;
 using WeLudic.Shared.Models;
+using BC = BCrypt.Net;
 
 namespace WeLudic.Application.Services;
 
@@ -38,18 +37,23 @@ public class AuthService : IAuthService
         if (!request.IsValid)
             return request.ToFail();
 
-        var user = new User().SetUser(
-                    request.Name,
-                    request.Email,
-                    EncryptKey(request.Password));
+        var user = await _repository.GetByEmailAsync(request.Email);
+        if (user is not null)
+        {
+            _logger.LogError($"{request.Email} já cadastrado.");
+            return Result.Fail(new ForbiddenError("Email já cadastrado."));
+        }
 
-        var createdUser = await _repository.CreateAsync(user);
+        var createdUser = await _repository.CreateAsync(new User().SetUser(
+                                                        request.Name,
+                                                        request.Email,
+                                                        BC.BCrypt.HashPassword(request.Password)));
 
         _logger.LogInformation("Gerando credenciais de acesso");
 
         var accessKeys = _service.CreateAccessKeys(createdUser.Id, createdUser.Email);
 
-        await UpdatedAccessInformationAsync(createdUser, accessKeys);
+        await UpdateAccessInformationAsync(createdUser, accessKeys);
 
         return Result.Ok(new SignupResponse(
             new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken),
@@ -68,15 +72,15 @@ public class AuthService : IAuthService
 
         var user = await _repository.GetByEmailAsync(request.Email);
         if (user is null ||
-            user?.HashedPassword != EncryptKey(request.Password))
+            !BC.BCrypt.Verify(request.Password, user.HashedPassword))
         {
-            _logger.LogError($"Acesso negado, informações não encontradas ou não conferem.");
+            _logger.LogError("Acesso negado, informações não encontradas ou não conferem.");
             return Result.Fail(new ForbiddenError("Acesso negado"));
         }
 
         var accessKeys = _service.CreateAccessKeys(user.Id, user.Email);
 
-        await UpdatedAccessInformationAsync(user, accessKeys);
+        await UpdateAccessInformationAsync(user, accessKeys);
 
         return Result.Ok(new SigninResponse(
             new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken),
@@ -93,45 +97,56 @@ public class AuthService : IAuthService
 
         var user = await _repository.GetByIdAsync(request.Id);
         if (user is null ||
-            user?.RefreshToken != EncryptKey(user.RefreshToken) ||
+            !BC.BCrypt.Verify(request.RefreshToken, user.RefreshToken) ||
             DateTime.UtcNow > user?.ExpirationAt)
         {
-            _logger.LogError($"Acesso negado, informações não encontradas ou não conferem.");
+            _logger.LogError("Acesso negado, informações inválidas ou expiradas.");
             return Result.Fail(new ForbiddenError("Acesso negado"));
         }
 
         var accessKeys = _service.CreateAccessKeys(user.Id, user.Email);
 
-        await UpdatedAccessInformationAsync(user, accessKeys);
+        await UpdateAccessInformationAsync(user, accessKeys);
 
         return Result.Ok(new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken));
     }
 
-    #region Private Methods
-
-    private string EncryptKey(string key)
+    public async Task<Result> LogoutAsync(Guid userId)
     {
-        _logger.LogInformation("Criptografando senha");
+        if (string.IsNullOrWhiteSpace(userId.ToString()))
+            return Result.Fail(new ValidationError("Informação inválida"));
 
-        // Generate a 128-bit salt using a sequence of
-        // cryptographically strong random bytes.
-        var salt = RandomNumberGenerator.GetBytes(128 / 8);
+        var user = await _repository.GetByIdAsync(userId);
+        if (user is null)
+        {
+            _logger.LogError("Usuário não encontrado.");
+            return Result.Fail(new NotFoundError("Usuário não encontrado."));
+        }
 
-        // Derive a 256-bit subkey (use HMACSHA256 with 100,000 iterations)
-        return Convert.ToBase64String(KeyDerivation.Pbkdf2(
-            password: key,
-            salt: salt,
-            prf: KeyDerivationPrf.HMACSHA256,
-            iterationCount: 100000,
-            numBytesRequested: 256 / 8));
+        user.SetRefreshToken(string.Empty, null);
+        await _repository.UpdateAsync(user);
+
+        return Result.Ok();
     }
 
-    private async Task UpdatedAccessInformationAsync(User createdUser, AccessKeys accessKeys)
+    public async Task<Result<UserResponse>> GetCurrentUserAsync(Guid userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId.ToString()))
+            return Result.Fail(new ValidationError("Informação inválida"));
+
+        var user = await _repository.GetByIdAsync(userId);
+
+        return Result.Ok(new UserResponse(user?.Id, user?.Name, user?.Email));
+    }
+
+    #region Private Methods
+
+    private async Task UpdateAccessInformationAsync(User createdUser, AccessKeys accessKeys)
     {
         _logger.LogInformation("Atualizando informações de acesso do usuário");
 
-        createdUser.SetAccessToken(EncryptKey(accessKeys.AccessToken));
-        createdUser.SetRefreshToken(EncryptKey(accessKeys.RefreshToken), accessKeys.Expiration);
+        createdUser.SetAccessToken(BC.BCrypt.HashPassword(accessKeys.AccessToken));
+        createdUser.SetRefreshToken(BC.BCrypt.HashPassword(accessKeys.RefreshToken), accessKeys.RefreshTokenExpiration);
         await _repository.UpdateAsync(createdUser);
     }
 

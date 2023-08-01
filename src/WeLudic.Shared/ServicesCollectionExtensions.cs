@@ -10,6 +10,6 @@ public static class ServicesCollectionExtensions
 {
     public static void ConfigureAppSettings(this IServiceCollection services)
         => services
-            .AddOptionsWithNonPublicProperties<SecuritySettings>(nameof(SecuritySettings))
-            .AddOptionsWithNonPublicProperties<ConnectionStrings>(nameof(ConnectionStrings));
+            .AddOptionsWithNonPublicProperties<ConnectionStrings>(nameof(ConnectionStrings))
+            .AddOptionsWithNonPublicProperties<SecuritySettings>(nameof(SecuritySettings));
 }

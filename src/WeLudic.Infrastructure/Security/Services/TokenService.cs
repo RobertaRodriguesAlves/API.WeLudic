@@ -25,7 +25,9 @@ public sealed class TokenService : ITokenService
         var accessToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
         var refreshToken = GenerateRefreshToken();
         var refreshTokenExpiration = expiresAt.Add(TimeSpan.FromMinutes(_settings.RefreshTokenValidMinutes));
-        return new(accessToken, refreshToken, createdAt, expiresAt, refreshTokenExpiration);
+
+        return new AccessKeys().SetAccessToken(accessToken, createdAt, expiresAt)
+                               .SetRefreshToken(refreshToken, refreshTokenExpiration);
     }
 
     #region Private Methods

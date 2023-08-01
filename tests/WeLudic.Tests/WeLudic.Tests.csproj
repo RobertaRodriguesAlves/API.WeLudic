@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -14,6 +15,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+    <PackageReference Include="Moq" Version="4.18.4" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.categories" Version="2.0.7" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -27,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\WeLudic.Domain\WeLudic.Domain.csproj" />
+    <ProjectReference Include="..\..\src\WeLudic.Application\WeLudic.Application.csproj" />
   </ItemGroup>
 
 </Project>

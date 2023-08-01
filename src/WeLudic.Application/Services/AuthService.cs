@@ -52,7 +52,6 @@ public class AuthService : IAuthService
         _logger.LogInformation("Gerando credenciais de acesso");
 
         var accessKeys = _service.CreateAccessKeys(createdUser.Id, createdUser.Email);
-
         await UpdateAccessInformationAsync(createdUser, accessKeys);
 
         return Result.Ok(new SignupResponse(
@@ -75,7 +74,7 @@ public class AuthService : IAuthService
             !BC.BCrypt.Verify(request.Password, user.HashedPassword))
         {
             _logger.LogError("Acesso negado, informações não encontradas ou não conferem.");
-            return Result.Fail(new ForbiddenError("Acesso negado"));
+            return Result.Fail(new UnauthorizedError("Acesso negado"));
         }
 
         var accessKeys = _service.CreateAccessKeys(user.Id, user.Email);
@@ -101,7 +100,7 @@ public class AuthService : IAuthService
             DateTime.UtcNow > user?.ExpirationAt)
         {
             _logger.LogError("Acesso negado, informações inválidas ou expiradas.");
-            return Result.Fail(new ForbiddenError("Acesso negado"));
+            return Result.Fail(new UnauthorizedError("Acesso negado"));
         }
 
         var accessKeys = _service.CreateAccessKeys(user.Id, user.Email);

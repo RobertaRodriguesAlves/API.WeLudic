@@ -78,7 +78,6 @@ public class AuthService : IAuthService
         }
 
         var accessKeys = _service.CreateAccessKeys(user.Id, user.Email);
-
         await UpdateAccessInformationAsync(user, accessKeys);
 
         return Result.Ok(new SigninResponse(
@@ -94,7 +93,7 @@ public class AuthService : IAuthService
         if (!request.IsValid)
             return request.ToFail();
 
-        var user = await _repository.GetByIdAsync(request.Id);
+        var user = await _repository.GetByIdAsync(request.UserId);
         if (user is null ||
             !BC.BCrypt.Verify(request.RefreshToken, user.RefreshToken) ||
             DateTime.UtcNow > user?.ExpirationAt)

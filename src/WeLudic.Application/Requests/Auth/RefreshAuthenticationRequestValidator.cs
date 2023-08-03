@@ -6,7 +6,7 @@ public sealed class RefreshAuthenticationRequestValidator : AbstractValidator<Re
 {
     public RefreshAuthenticationRequestValidator()
     {
-        RuleFor(p => p.Id).NotEmpty();
-        RuleFor(p => p.RefreshToken).NotEmpty();
+        RuleFor(p => p.UserId).NotEmpty().NotNull();
+        RuleFor(p => p.RefreshToken).NotEmpty().NotNull();
     }
 }

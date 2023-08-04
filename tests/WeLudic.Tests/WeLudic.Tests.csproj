@@ -33,4 +33,10 @@
     <ProjectReference Include="..\..\src\WeLudic.Application\WeLudic.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="appsettings.Testing.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

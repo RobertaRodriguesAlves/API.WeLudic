@@ -96,14 +96,13 @@ public class AuthService : IAuthService
         var user = await _repository.GetByIdAsync(request.UserId);
         if (user is null ||
             !BC.BCrypt.Verify(request.RefreshToken, user.RefreshToken) ||
-            DateTime.UtcNow > user?.ExpirationAt)
+            DateTime.UtcNow > user.ExpirationAt)
         {
             _logger.LogError("Acesso negado, informações inválidas ou expiradas.");
             return Result.Fail(new UnauthorizedError("Acesso negado"));
         }
 
         var accessKeys = _service.CreateAccessKeys(user.Id, user.Email);
-
         await UpdateAccessInformationAsync(user, accessKeys);
 
         return Result.Ok(new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken));
@@ -111,14 +110,14 @@ public class AuthService : IAuthService
 
     public async Task<Result> LogoutAsync(Guid userId)
     {
-        if (string.IsNullOrWhiteSpace(userId.ToString()))
+        if (userId == Guid.Empty)
             return Result.Fail(new ValidationError("Informação inválida"));
 
         var user = await _repository.GetByIdAsync(userId);
         if (user is null)
         {
             _logger.LogError("Usuário não encontrado.");
-            return Result.Fail(new NotFoundError("Usuário não encontrado."));
+            return Result.Fail(new NotFoundError("Usuário não encontrado"));
         }
 
         user.SetRefreshToken(string.Empty, null);
@@ -129,12 +128,17 @@ public class AuthService : IAuthService
 
     public async Task<Result<UserResponse>> GetCurrentUserAsync(Guid userId)
     {
-        if (string.IsNullOrWhiteSpace(userId.ToString()))
+        if (userId == Guid.Empty)
             return Result.Fail(new ValidationError("Informação inválida"));
 
         var user = await _repository.GetByIdAsync(userId);
+        if (user is null)
+        {
+            _logger.LogError("Usuário não encontrado.");
+            return Result.Fail(new NotFoundError("Usuário não encontrado"));
+        }
 
-        return Result.Ok(new UserResponse(user?.Id, user?.Name, user?.Email));
+        return Result.Ok(new UserResponse(user.Id, user.Name, user.Email));
     }
 
     #region Private Methods

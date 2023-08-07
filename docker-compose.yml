@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  weludicapp:
+    build:
+        context: .
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - '5000:80'
+    depends_on:
+      - "db"
+
+  db:
+    image: mysql:latest
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: always
+    tty: true
+    environment:
+      - MYSQL_DATABASE=weludicdb
+      - MYSQL_ROOT_PASSWORD=RooT146@1
+    ports:
+      - '3306:3306'
+
+volumes:
+  mysql-data:

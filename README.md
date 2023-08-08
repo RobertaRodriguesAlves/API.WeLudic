@@ -19,6 +19,10 @@ Instrumentalizar profissionais para oferecerem atenção a educação, bem-estar
 ## 🔨 Tecnologias:
 
 - **[.NET](https://learn.microsoft.com/en-us/dotnet/core/introduction)**
+- **[Docker](https://docs.docker.com/)
+
+## Para executar o projeto:
+- No terminal, com o docker devidamente instalado executar o seguinte comando: "docker compose up -d"
 
 ### 📜 License
 

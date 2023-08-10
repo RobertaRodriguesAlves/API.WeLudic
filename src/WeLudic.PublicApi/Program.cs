@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using WeLudic.Application;
 using WeLudic.Infrastructure;
 using WeLudic.Infrastructure.Data.Context;
@@ -31,7 +34,14 @@ builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSecurity(builder.Configuration, builder.Environment);
 
-builder.Services.AddControllers().AddNewtonsoftJson();
+builder.Services
+    .AddControllers()
+    .AddNewtonsoftJson(opt =>
+    {
+        opt.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+        opt.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Include;
+        opt.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+    });
 
 builder.Services.AddResponseCompression(opt => opt.Providers.Add<GzipCompressionProvider>());
 builder.Services.AddEndpointsApiExplorer();

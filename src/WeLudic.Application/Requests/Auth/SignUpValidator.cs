@@ -18,5 +18,20 @@ public sealed class SignUpValidator : AbstractValidator<SignUpRequest>
         RuleFor(user => user.Password)
             .NotEmpty()
             .WithMessage("Password cannot be empty.");
+
+        RuleFor(user => user.ConfirmPassword)
+            .NotEmpty()
+            .WithMessage("Password cannot be empty.");
+
+        RuleFor(user => user)
+            .Must(opt => ConfirmPassword(opt.Password, opt.ConfirmPassword))
+            .WithMessage("Password do not match.");
+
+        RuleFor(user => user.AccordingToTerms)
+            .Equal(true)
+            .WithMessage("AccordingToTerms is invalid.");
     }
+
+    private static bool ConfirmPassword(string password, string confirmPassword)
+        => password.Equals(confirmPassword);
 }

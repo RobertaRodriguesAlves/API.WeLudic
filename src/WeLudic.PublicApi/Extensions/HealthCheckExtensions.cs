@@ -9,7 +9,7 @@ public static class HealthCheckExtensions
 {
     public static IHealthChecksBuilder AddHealthChecks(this IServiceCollection services, string connectionString)
     {
-        Guard.Against.NullOrWhiteSpace(connectionString, nameof(connectionString));
+        Guard.Against.NullOrWhiteSpace(connectionString);
         return services.AddHealthChecks()
             .AddCheck<GCInfoHealthCheck>("GCInfoCheck", HealthStatus.Degraded, new string[1] { "memory" })
             .AddMySql(

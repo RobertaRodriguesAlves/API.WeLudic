@@ -72,7 +72,8 @@ public class AuthServiceTests
             .RuleFor(u => u.Email, f => f.Internet.Email())
             .RuleFor(u => u.HashedPassword, f => f.Internet.Password());
 
-        var signUpRequest = CreateSignUpRequest(_faker.Name.FullName(), emailAddress, _faker.Internet.Password(), _faker.Internet.Password());
+        var password = _faker.Internet.Password();
+        var signUpRequest = CreateSignUpRequest(_faker.Name.FullName(), emailAddress, password, password);
 
         _repositoryMock
             .Setup(r => r.GetByEmailAsync(It.Is<string>(p => p == emailAddress), It.IsAny<CancellationToken>()))
@@ -101,7 +102,8 @@ public class AuthServiceTests
             .SetAccessToken(Guid.NewGuid().ToString(), DateTime.UtcNow, DateTime.UtcNow.AddHours(4))
             .SetRefreshToken(Guid.NewGuid().ToString(), DateTime.UtcNow);
 
-        var signUpRequest = CreateSignUpRequest(_faker.Name.FullName(), _faker.Internet.Email(), _faker.Internet.Password(), _faker.Internet.Password());
+        var password = _faker.Internet.Password();
+        var signUpRequest = CreateSignUpRequest(_faker.Name.FullName(), _faker.Internet.Email(), password, password);
 
         _repositoryMock
             .Setup(r => r.GetByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))

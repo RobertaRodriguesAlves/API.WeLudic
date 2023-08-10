@@ -26,7 +26,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .IsUnicode(false);
 
-        builder.Property(p => p.AccordingToTerms)
+        builder.Property(p => p.ConfirmAndAgree)
            .IsRequired();
 
         builder.Property(p => p.AccessToken)

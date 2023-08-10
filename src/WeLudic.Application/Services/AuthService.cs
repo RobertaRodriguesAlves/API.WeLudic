@@ -56,7 +56,7 @@ public class AuthService : IAuthService
 
         return Result.Ok(new SignupResponse(
             new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken),
-            new UserResponse(createdUser.Id, createdUser.Name, createdUser.Email)));
+            new UserResponse(createdUser.Id, createdUser.Name, createdUser.Email, createdUser.ConfirmAndAgree)));
     }
 
     public async Task<Result<SigninResponse>> SignInAsync(SignInRequest request)
@@ -82,7 +82,7 @@ public class AuthService : IAuthService
 
         return Result.Ok(new SigninResponse(
             new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken),
-            new UserResponse(user.Id, user.Name, user.Email)));
+            new UserResponse(user.Id, user.Name, user.Email, user.ConfirmAndAgree)));
     }
 
     public async Task<Result<TokenResponse>> RefreshAuthenticationAsync(RefreshAuthenticationRequest request)
@@ -138,7 +138,7 @@ public class AuthService : IAuthService
             return Result.Fail(new NotFoundError("Usuário não encontrado"));
         }
 
-        return Result.Ok(new UserResponse(user.Id, user.Name, user.Email));
+        return Result.Ok(new UserResponse(user.Id, user.Name, user.Email, user.ConfirmAndAgree));
     }
 
     #region Private Methods

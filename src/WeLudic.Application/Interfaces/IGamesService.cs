@@ -6,5 +6,5 @@ namespace WeLudic.Application.Interfaces;
 
 public interface IGamesService : IAppService, IDisposable
 {
-    Task<Result<RouletteOptionsResponse>> GetRouletteOptions(Guid userId);
+    Task<Result<IEnumerable<RouletteOptionsResponse>>> GetRouletteOptions();
 }

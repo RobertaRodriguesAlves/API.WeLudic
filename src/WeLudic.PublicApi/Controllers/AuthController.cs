@@ -11,7 +11,6 @@ namespace WeLudic.PublicApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[AllowAnonymous]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _service;
@@ -24,6 +23,7 @@ public class AuthController : ControllerBase
     /// <response code="200"> Retorna chaves de acesso.</response>
     /// <response code="500"></response>
     [HttpPost("signup")]
+    [AllowAnonymous]
     [Consumes(MediaTypeNames.Application.Json)]
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(typeof(ApiResponse<SignupResponse>), StatusCodes.Status200OK)]

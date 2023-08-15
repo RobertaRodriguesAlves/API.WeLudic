@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
@@ -76,10 +77,18 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Exibindo os nomes das propriedades da validação sem os espaços.
+// Exibe os nomes das propriedades da validação sem os espaços.
 ValidatorOptions.Global.DisplayNameResolver = (_, member, _) => member?.Name;
 
-// Verificando se existe alguma migração pendente a aplica se necessário.
+var mapper = app.Services.GetRequiredService<IMapper>();
+
+// Valida os mapeamentos, se existir alguma classe não mapeada corretamente, será lançada uma exceção.
+mapper.ConfigurationProvider.AssertConfigurationIsValid();
+
+// Cacheia os mapeamentos
+mapper.ConfigurationProvider.CompileMappings();
+
+// Verifica se existe alguma migração pendente a aplica se necessário.
 await using var scope = app.Services.CreateAsyncScope();
 await using var context = scope.ServiceProvider.GetRequiredService<WeLudicContext>();
 

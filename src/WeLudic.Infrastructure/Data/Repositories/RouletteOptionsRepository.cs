@@ -10,9 +10,9 @@ public class RouletteOptionsRepository : BaseRepository<RouletteOption>, IRoulet
 {
     public RouletteOptionsRepository(WeLudicContext context) : base(context) { }
 
-    public async Task<RouletteOption> GetOptionsAsync(Guid userId)
-    {
-        //await DbSet.AsNoTracking().Where(p => p.)
-        throw new NotImplementedException();
-    }
+    public async Task<IEnumerable<RouletteOption>> GetOptionsAsync(Guid userId)
+        => await DbSet
+            .AsNoTracking()
+            .Where(p => p.UserId.Equals(userId) || p.UserId == null)
+            .ToListAsync();
 }

@@ -1,25 +1,41 @@
+using AutoMapper;
 using FluentResults;
 using Microsoft.Extensions.Logging;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Responses.Games;
+using WeLudic.Domain.Interfaces;
+using WeLudic.Shared.Errors;
 
 namespace WeLudic.Application.Services;
 
 public class GamesService : IGamesService
 {
+    private readonly IRouletteOptionsRepository _optionsRepository;
+    private readonly IMapper _mapper;
     private readonly ILogger<GamesService> _logger;
 
-    public GamesService(ILogger<GamesService> logger)
+    public GamesService(
+        IRouletteOptionsRepository optionsRepository,
+        IMapper mapper,
+        ILogger<GamesService> logger)
     {
+        _optionsRepository = optionsRepository;
+        _mapper = mapper;
         _logger = logger;
     }
 
-    public Task<Result<RouletteOptionsResponse>> GetRouletteOptions(Guid userId)
+    public async Task<Result<IEnumerable<RouletteOptionsResponse>>> GetRouletteOptions()
     {
-        //if (userId == Guid.Empty)
-        //    return Result.Fail(new ValidationError("Informação inválida"));
+        _logger.LogInformation("Validando informação recebida");
 
-        throw new NotImplementedException();
+        if (userId == Guid.Empty)
+            return Result.Fail(new ValidationError("Informação inválida"));
+
+        var rouletteOptions = await _optionsRepository.GetOptionsAsync(userId);
+        if (!rouletteOptions.Any())
+            return Result.Ok(Enumerable.Empty<RouletteOptionsResponse>());
+
+        return Result.Ok(_mapper.Map<IEnumerable<RouletteOptionsResponse>>(rouletteOptions));
     }
 
     #region IDisposable
@@ -49,7 +65,7 @@ public class GamesService : IGamesService
 
         // Dispose managed state (managed objects).
         if (disposing)
-            //_repository.Dispose();
+            _optionsRepository.Dispose();
 
         _disposed = true;
     }

@@ -5,5 +5,5 @@ namespace WeLudic.Domain.Interfaces;
 
 public interface IRouletteOptionsRepository : IRepository
 {
-    Task<RouletteOption> GetOptionsAsync(Guid userId);
+    Task<IEnumerable<RouletteOption>> GetOptionsAsync(Guid userId);
 }

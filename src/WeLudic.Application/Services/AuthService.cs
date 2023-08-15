@@ -2,7 +2,7 @@ using FluentResults;
 using Microsoft.Extensions.Logging;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Requests.Auth;
-using WeLudic.Application.Responses;
+using WeLudic.Application.Responses.Auth;
 using WeLudic.Domain.Entities;
 using WeLudic.Domain.Interfaces;
 using WeLudic.Infrastructure.Security.Interfaces;

@@ -1,6 +1,6 @@
 using WeLudic.Shared.Responses;
 
-namespace WeLudic.Application.Responses;
+namespace WeLudic.Application.Responses.Auth;
 
 public sealed class SigninResponse : BaseResponse
 {

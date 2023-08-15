@@ -1,4 +1,4 @@
-namespace WeLudic.Application.Responses;
+namespace WeLudic.Application.Responses.Auth;
 
 public sealed class UserResponse
 {

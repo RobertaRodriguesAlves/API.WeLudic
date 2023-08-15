@@ -11,11 +11,6 @@ public interface IAudit
     DateTime CreatedAt { get; }
 
     /// <summary>
-    /// Usuário que criou a entidade.
-    /// </summary>
-    Guid? CreatedBy { get; }
-
-    /// <summary>
     /// Data de última atualização da entidade.
     /// </summary>
     DateTime? LastModified { get; }
@@ -29,9 +24,4 @@ public interface IAudit
     /// Indica se a entidade foi deletada.
     /// </summary>
     bool IsDeleted { get; }
-
-    /// <summary>
-    /// Versão da entidade.
-    /// </summary>
-    long Version { get; }
 }

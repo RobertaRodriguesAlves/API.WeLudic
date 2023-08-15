@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Requests.Auth;
-using WeLudic.Application.Responses;
+using WeLudic.Application.Responses.Auth;
 using WeLudic.Shared.Extensions;
 using WeLudic.Shared.Responses;
 

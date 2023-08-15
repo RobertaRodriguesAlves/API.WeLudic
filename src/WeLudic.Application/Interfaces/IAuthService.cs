@@ -1,6 +1,6 @@
 using FluentResults;
 using WeLudic.Application.Requests.Auth;
-using WeLudic.Application.Responses;
+using WeLudic.Application.Responses.Auth;
 using WeLudic.Shared.Abstractions;
 
 namespace WeLudic.Application.Interfaces;

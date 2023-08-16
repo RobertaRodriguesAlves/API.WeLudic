@@ -1,9 +1,12 @@
 using AutoMapper;
 using FluentResults;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Responses.Games;
 using WeLudic.Domain.Interfaces;
+using WeLudic.Shared.AppSettings;
 using WeLudic.Shared.Errors;
 
 namespace WeLudic.Application.Services;
@@ -12,31 +15,42 @@ public class GamesService : IGamesService
 {
     private readonly IRouletteOptionsRepository _optionsRepository;
     private readonly IMapper _mapper;
+    private readonly IHttpContextAccessor _httpAccessor;
     private readonly ILogger<GamesService> _logger;
+
+    private readonly SecuritySettings _settings;
 
     public GamesService(
         IRouletteOptionsRepository optionsRepository,
         IMapper mapper,
-        ILogger<GamesService> logger)
+        IHttpContextAccessor httpAccessor,
+        ILogger<GamesService> logger,
+        IOptions<SecuritySettings> options)
     {
         _optionsRepository = optionsRepository;
         _mapper = mapper;
+        _httpAccessor = httpAccessor;
         _logger = logger;
+        _settings = options.Value;
     }
 
     public async Task<Result<IEnumerable<RouletteOptionsResponse>>> GetRouletteOptions()
     {
         _logger.LogInformation("Validando informação recebida");
 
-        if (userId == Guid.Empty)
-            return Result.Fail(new ValidationError("Informação inválida"));
+        var userId = _httpAccessor.HttpContext.User.Claims.FirstOrDefault(ac => ac.Type == _settings.ClaimKey)?.Value;
 
-        var rouletteOptions = await _optionsRepository.GetOptionsAsync(userId);
+        if (string.IsNullOrWhiteSpace(userId))
+            return Result.Fail(new UnauthorizedError("Acesso negado"));
+
+        var rouletteOptions = await _optionsRepository.GetOptionsAsync(Guid.Parse(userId));
         if (!rouletteOptions.Any())
             return Result.Ok(Enumerable.Empty<RouletteOptionsResponse>());
 
         return Result.Ok(_mapper.Map<IEnumerable<RouletteOptionsResponse>>(rouletteOptions));
     }
+
+
 
     #region IDisposable
 

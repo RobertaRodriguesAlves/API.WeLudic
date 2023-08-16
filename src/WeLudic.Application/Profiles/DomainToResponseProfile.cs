@@ -8,6 +8,6 @@ public class DomainToResponseProfile : Profile
 {
     public DomainToResponseProfile()
     {
-        CreateMap<IEnumerable<RouletteOption>, IEnumerable<RouletteOptionsResponse>>(MemberList.Destination);
+        CreateMap<RouletteOption, RouletteOptionsResponse>(MemberList.Destination);
     }
 }

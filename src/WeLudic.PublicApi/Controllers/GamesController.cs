@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WeLudic.Application.Interfaces;
+using WeLudic.Shared.Extensions;
 
 namespace WeLudic.PublicApi.Controllers;
 [Route("api/[controller]")]

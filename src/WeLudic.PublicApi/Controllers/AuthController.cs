@@ -9,6 +9,7 @@ using WeLudic.Shared.Responses;
 
 namespace WeLudic.PublicApi.Controllers;
 
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class AuthController : ControllerBase
@@ -22,8 +23,8 @@ public class AuthController : ControllerBase
     /// </summary>
     /// <response code="200"> Retorna chaves de acesso.</response>
     /// <response code="500"></response>
-    [HttpPost("signup")]
     [AllowAnonymous]
+    [HttpPost("signup")]
     [Consumes(MediaTypeNames.Application.Json)]
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(typeof(ApiResponse<SignupResponse>), StatusCodes.Status200OK)]
@@ -36,6 +37,7 @@ public class AuthController : ControllerBase
     /// </summary>
     /// <response code="200"> Retorna chaves de acesso.</response>
     /// <response code="500"></response>
+    [AllowAnonymous]
     [HttpPost("signin")]
     [Consumes(MediaTypeNames.Application.Json)]
     [Produces(MediaTypeNames.Application.Json)]

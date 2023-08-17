@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WeLudic.Infrastructure.Data.Context;
 
@@ -10,9 +11,10 @@ using WeLudic.Infrastructure.Data.Context;
 namespace WeLudic.PublicApi.Migrations
 {
     [DbContext(typeof(WeLudicContext))]
-    partial class WeLudicContextModelSnapshot : ModelSnapshot
+    [Migration("20230817110128_Atualização tabela RouletteSession")]
+    partial class AtualizaçãotabelaRouletteSession
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

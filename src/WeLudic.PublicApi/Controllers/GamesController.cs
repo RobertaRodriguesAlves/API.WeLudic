@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WeLudic.Application.Interfaces;
+using WeLudic.Application.Requests.Games;
 using WeLudic.Shared.Extensions;
 
 namespace WeLudic.PublicApi.Controllers;
@@ -14,4 +15,8 @@ public class GamesController : ControllerBase
     [HttpGet("roulette-options")]
     public async Task<IActionResult> GetRouletteOptionsAsync()
         => (await _service.GetRouletteOptions()).ToActionResult();
+
+    [HttpPost("create-roulette-session")]
+    public async Task<IActionResult> CreateRouletteSessionAsync([FromBody] CreateRouletteSessionRequest request)
+        => (await _service.CreateRouletteSessionAsync(request)).ToActionResult();
 }

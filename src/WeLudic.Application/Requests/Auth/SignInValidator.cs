@@ -8,10 +8,10 @@ public sealed class SignInValidator : AbstractValidator<SignInRequest>
     {
         RuleFor(user => user.Email)
             .NotEmpty()
-            .WithMessage("{Property} cannot be empty.");
+            .WithMessage("{Property} não pode ser vazio");
 
         RuleFor(user => user.Password)
             .NotEmpty()
-            .WithMessage("{Property} cannot be empty.");
+            .WithMessage("{Property} não pode ser vazia");
     }
 }

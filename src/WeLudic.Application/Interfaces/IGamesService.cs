@@ -9,4 +9,5 @@ public interface IGamesService : IAppService, IDisposable
 {
     Task<Result<IEnumerable<RouletteOptionsResponse>>> GetRouletteOptions();
     Task<Result<Guid>> CreateRouletteSessionAsync(CreateRouletteSessionRequest request);
+    Task<Result<IEnumerable<RouletteOptionsResponse>>> GetGameOptions(Guid sessionId);
 }

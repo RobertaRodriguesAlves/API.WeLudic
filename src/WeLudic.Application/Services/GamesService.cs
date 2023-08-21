@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Requests.Games;
 using WeLudic.Application.Responses.Games;
+using WeLudic.Domain.Entities;
 using WeLudic.Domain.Interfaces;
 using WeLudic.Shared.AppSettings;
 using WeLudic.Shared.Errors;
@@ -16,6 +17,8 @@ namespace WeLudic.Application.Services;
 public class GamesService : IGamesService
 {
     private readonly IRouletteOptionsRepository _optionsRepository;
+    private readonly IRouletteSessionRepository _sessionRepository;
+    private readonly IRouletteSessionOptionRepository _sessionOptionRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<GamesService> _logger;
 
@@ -25,12 +28,16 @@ public class GamesService : IGamesService
 
     public GamesService(
         IRouletteOptionsRepository optionsRepository,
+        IRouletteSessionRepository sessionRepository,
+        IRouletteSessionOptionRepository sessionOptionRepository,
         IMapper mapper,
         IHttpContextAccessor httpAccessor,
         ILogger<GamesService> logger,
         IOptions<SecuritySettings> options)
     {
         _optionsRepository = optionsRepository;
+        _sessionRepository = sessionRepository;
+        _sessionOptionRepository = sessionOptionRepository;
         _mapper = mapper;
         _logger = logger;
         _settings = options.Value;
@@ -63,8 +70,41 @@ public class GamesService : IGamesService
         if (string.IsNullOrWhiteSpace(_userId))
             return Result.Fail(new UnauthorizedError("Acesso negado"));
 
-        return Result.Ok(Guid.NewGuid());
+        var session = new RouletteSession()
+                     .SetRouletteSession(Guid.Parse(_userId));
+
+        var sessionId = await _sessionRepository.CreateSessionAsync(session);
+        await _sessionOptionRepository.CreateSessionOptionAsync(sessionId, request.Options);
+
+        return Result.Ok(sessionId);
     }
+
+    public async Task<Result<IEnumerable<RouletteOptionsResponse>>> GetGameOptions(Guid sessionId)
+    {
+        if (sessionId == Guid.Empty)
+            return Result.Fail(new ValidationError("Informação inválida"));
+
+        var sessionOptions = await _sessionOptionRepository.GetOptionsBySessionIdAsync(sessionId);
+        var optionsId = ConvertComplexTypeIntoListOfInt(sessionOptions);
+
+        var rouletteOptions = await _optionsRepository.GetOptionByIdAsync(optionsId);
+        return Result.Ok(_mapper.Map<IEnumerable<RouletteOptionsResponse>>(rouletteOptions));
+    }
+
+    #region Private Methods
+
+    private static List<int> ConvertComplexTypeIntoListOfInt(IEnumerable<RouletteSessionOption> sessionOptions)
+    {
+        var optionsId = new List<int>();
+        foreach (var item in sessionOptions)
+        {
+            optionsId.Add(item.RouletteOptionId);
+        }
+
+        return optionsId;
+    }
+
+    #endregion
 
     #region IDisposable
 

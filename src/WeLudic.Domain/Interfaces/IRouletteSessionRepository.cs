@@ -1,8 +1,9 @@
+using WeLudic.Domain.Entities;
 using WeLudic.Shared.Abstractions;
 
 namespace WeLudic.Domain.Interfaces;
 
 public interface IRouletteSessionRepository : IRepository
 {
-    Task<Guid> CreateSessionAsync(Guid userId, IEnumerable<int> options, CancellationToken cancellationToken = default);
+    Task<Guid> CreateSessionAsync(RouletteSession roulette, CancellationToken cancellationToken = default);
 }

@@ -6,7 +6,6 @@ public class RouletteOption : BaseAuditEntity
 {
     public RouletteOption()
     {
-        RouletteSessions = new HashSet<RouletteSession>();
         RouletteSessionOptions = new HashSet<RouletteSessionOption>();
     }
 
@@ -14,7 +13,6 @@ public class RouletteOption : BaseAuditEntity
     public string Name { get; private set; }
     public Guid? UserId { get; private set; }
     public virtual User User { get; }
-    public ICollection<RouletteSession> RouletteSessions { get; }
     public ICollection<RouletteSessionOption> RouletteSessionOptions { get; }
 
     public RouletteOption SetRouletteOptions(int id, string name)

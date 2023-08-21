@@ -10,9 +10,14 @@ public class RouletteOptionsRepository : BaseRepository<RouletteOption>, IRoulet
 {
     public RouletteOptionsRepository(WeLudicContext context) : base(context) { }
 
-    public async Task<IEnumerable<RouletteOption>> GetOptionsAsync(Guid userId)
+    public async Task<IEnumerable<RouletteOption>> GetOptionsAsync(Guid userId, CancellationToken cancellationToken = default)
         => await DbSet
             .AsNoTracking()
             .Where(p => p.UserId.Equals(userId) || p.UserId == null)
             .ToListAsync();
+
+    public async Task<IEnumerable<RouletteOption>> GetOptionByIdAsync(IEnumerable<int> optionsId, CancellationToken cancellationToken = default)
+        => await DbSet
+        .AsNoTracking()
+        .Where(p => optionsId.Contains(p.Id)).ToListAsync();
 }

@@ -9,8 +9,11 @@ public class RouletteSessionRepository : BaseRepository<RouletteSession>, IRoule
 {
     public RouletteSessionRepository(WeLudicContext context) : base(context) { }
 
-    public Task<Guid> CreateSessionAsync(Guid userId, IEnumerable<int> options, CancellationToken cancellationToken = default)
+    public async Task<Guid> CreateSessionAsync(RouletteSession roulette, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        DbSet.Add(roulette);
+        await SaveChangesAsync(cancellationToken);
+
+        return roulette.Id;
     }
 }

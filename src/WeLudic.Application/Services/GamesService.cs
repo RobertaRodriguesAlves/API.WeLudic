@@ -23,7 +23,6 @@ public class GamesService : IGamesService
     private readonly ILogger<GamesService> _logger;
 
     private readonly SecuritySettings _settings;
-
     private readonly string _userId;
 
     public GamesService(

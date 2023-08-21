@@ -4,13 +4,11 @@ namespace WeLudic.Application.Requests.Auth;
 
 public sealed class RefreshAuthenticationRequest : BaseRequestWithValidation
 {
-    public RefreshAuthenticationRequest(Guid userId, string refreshToken)
+    public RefreshAuthenticationRequest(string refreshToken)
     {
-        UserId = userId;
         RefreshToken = refreshToken;
     }
 
-    public Guid UserId { get; }
     public string RefreshToken { get; }
 
     public override async Task ValidateAsync()

@@ -8,28 +8,29 @@ public sealed class SignUpValidator : AbstractValidator<SignUpRequest>
     {
         RuleFor(user => user.Name)
             .NotEmpty()
-            .WithMessage("{Property} cannot be empty.");
+            .WithMessage("Informe um nome");
 
         RuleFor(user => user.Email)
             .NotEmpty()
+            .WithMessage("Informe um e-mail")
             .EmailAddress()
-            .WithMessage("Email is invalid.");
+            .WithMessage("E-mail inválido");
 
         RuleFor(user => user.Password)
             .NotEmpty()
-            .WithMessage("Password cannot be empty.");
+            .WithMessage("Informe uma senha");
 
         RuleFor(user => user.ConfirmPassword)
             .NotEmpty()
-            .WithMessage("Password cannot be empty.");
+            .WithMessage("Confirme a senha");
 
         RuleFor(user => user)
             .Must(opt => ConfirmPassword(opt.Password, opt.ConfirmPassword))
-            .WithMessage("Password do not match.");
+            .WithMessage("Os campos de senha não conferem");
 
         RuleFor(user => user.ConfirmAndAgree)
             .Equal(true)
-            .WithMessage("ConfirmAndAgree is invalid.");
+            .WithMessage("É necessário concordar com os termos");
     }
 
     private static bool ConfirmPassword(string password, string confirmPassword)

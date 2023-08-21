@@ -70,8 +70,8 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<TokenResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Logout([FromBody] Guid userId)
-        => (await _service.LogoutAsync(userId)).ToActionResult();
+    public async Task<IActionResult> Logout()
+        => (await _service.LogoutAsync()).ToActionResult();
 
     /// <summary>
     /// Retorna informações do usuário logado.
@@ -81,6 +81,6 @@ public class AuthController : ControllerBase
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetCurrentUser([FromBody] Guid userId)
-        => (await _service.GetCurrentUserAsync(userId)).ToActionResult();
+    public async Task<IActionResult> GetCurrentUser()
+        => (await _service.GetCurrentUserAsync()).ToActionResult();
 }

@@ -1,10 +1,15 @@
 using System;
+using System.IO;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Bogus;
 using FluentAssertions;
 using FluentResults.Extensions.FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Requests.Auth;
@@ -12,6 +17,7 @@ using WeLudic.Application.Services;
 using WeLudic.Domain.Entities;
 using WeLudic.Domain.Interfaces;
 using WeLudic.Infrastructure.Security.Interfaces;
+using WeLudic.Shared.AppSettings;
 using WeLudic.Shared.Models;
 using Xunit;
 using Xunit.Categories;
@@ -25,6 +31,7 @@ public class AuthServiceTests
     private Mock<ITokenService> _serviceMock;
     private Mock<IUserRepository> _repositoryMock;
     private Mock<ILogger<AuthService>> _loggerMock;
+    private Mock<IHttpContextAccessor> _httpContextMock;
 
     private readonly Faker _faker = new("pt_BR");
 
@@ -50,6 +57,15 @@ public class AuthServiceTests
         // Arrange
         using var service = CreateService();
         var signUpRequest = CreateSignUpRequest(name, emailAddress, password, confirmPassword);
+
+        var user = new ClaimsPrincipal(
+                  new ClaimsIdentity(
+                  new Claim[]
+                  {
+                       new Claim("ClaimKey", Guid.NewGuid().ToString())
+                  }));
+
+        _httpContextMock.Setup(s => s.HttpContext.User).Returns(user);
 
         // Act
         var act = await service.SignUpAsync(signUpRequest);
@@ -266,14 +282,13 @@ public class AuthServiceTests
     }
 
     [Theory]
-    [InlineData("00000000-0000-0000-0000-000000000000", "")]
-    [InlineData("6870CB1D-711C-4381-A3CE-FC622C94A6D5", "")]
-    [InlineData("00000000-0000-0000-0000-000000000000", "6870CB1D-711C-4381-A3CE-FC622C94A6D5")]
-    public async Task Should_ReturnsValidationError_WhenRefreshAuthenticationRequestIsInvalid(Guid userId, string refreshToken)
+    [InlineData("00000000-0000-0000-0000-000000000000")]
+    [InlineData("6870CB1D-711C-4381-A3CE-FC622C94A6D5")]
+    public async Task Should_ReturnsValidationError_WhenRefreshAuthenticationRequestIsInvalid(string refreshToken)
     {
         // Arrange
         using var service = CreateService();
-        var refreshTokenRequest = CreateRefreshTokenRequest(userId, refreshToken);
+        var refreshTokenRequest = CreateRefreshTokenRequest(refreshToken);
 
         // Act
         var act = await service.RefreshAuthenticationAsync(refreshTokenRequest);
@@ -291,7 +306,7 @@ public class AuthServiceTests
 
         const string errorMesssage = "Acesso negado";
         var userId = Guid.NewGuid();
-        var refreshTokenRequest = CreateRefreshTokenRequest(userId, Guid.NewGuid().ToString());
+        var refreshTokenRequest = CreateRefreshTokenRequest(Guid.NewGuid().ToString());
 
         _repositoryMock
             .Setup(r => r.GetByIdAsync(It.Is<Guid>(p => p == userId), It.IsAny<CancellationToken>()))
@@ -314,7 +329,7 @@ public class AuthServiceTests
 
         const string errorMesssage = "Acesso negado";
         var userId = Guid.NewGuid();
-        var refreshTokenRequest = CreateRefreshTokenRequest(userId, Guid.NewGuid().ToString());
+        var refreshTokenRequest = CreateRefreshTokenRequest(Guid.NewGuid().ToString());
 
         var user = new Faker<User>("pt_BR")
             .RuleFor(u => u.Name, f => f.Name.FullName())
@@ -345,7 +360,7 @@ public class AuthServiceTests
         const string errorMesssage = "Acesso negado";
         var userId = Guid.NewGuid();
         var refreshToken = Guid.NewGuid().ToString();
-        var refreshTokenRequest = CreateRefreshTokenRequest(userId, refreshToken);
+        var refreshTokenRequest = CreateRefreshTokenRequest(refreshToken);
 
         var user = new User()
             .SetUser(_faker.Name.FullName(), _faker.Internet.Email(), _faker.Internet.Password());
@@ -373,7 +388,7 @@ public class AuthServiceTests
 
         var userId = Guid.NewGuid();
         var refreshToken = Guid.NewGuid().ToString();
-        var refreshTokenRequest = CreateRefreshTokenRequest(userId, refreshToken);
+        var refreshTokenRequest = CreateRefreshTokenRequest(refreshToken);
 
         var user = new User()
             .SetUser(_faker.Name.FullName(), _faker.Internet.Email(), _faker.Internet.Password());
@@ -418,7 +433,7 @@ public class AuthServiceTests
         const string errorMesssage = "Informação inválida";
 
         // Act
-        var act = await service.LogoutAsync(Guid.Empty);
+        var act = await service.LogoutAsync();
 
         // Assert
         act.Should().BeFailure();
@@ -439,7 +454,7 @@ public class AuthServiceTests
             .Verifiable();
 
         // Act
-        var act = await service.LogoutAsync(userId);
+        var act = await service.LogoutAsync();
 
         // Assert
         act.Should().BeFailure();
@@ -468,7 +483,7 @@ public class AuthServiceTests
             .Verifiable();
 
         // Act
-        var act = await service.LogoutAsync(userId);
+        var act = await service.LogoutAsync();
 
         // Assert
         act.Should().BeSuccess();
@@ -482,7 +497,7 @@ public class AuthServiceTests
         const string errorMesssage = "Informação inválida";
 
         // Act
-        var act = await service.GetCurrentUserAsync(Guid.Empty);
+        var act = await service.GetCurrentUserAsync();
 
         // Assert
         act.Should().BeFailure();
@@ -503,7 +518,7 @@ public class AuthServiceTests
             .Verifiable();
 
         // Act
-        var act = await service.GetCurrentUserAsync(userId);
+        var act = await service.GetCurrentUserAsync();
 
         // Assert
         act.Should().BeFailure();
@@ -528,7 +543,7 @@ public class AuthServiceTests
             .Verifiable();
 
         // Act
-        var act = await service.GetCurrentUserAsync(userId);
+        var act = await service.GetCurrentUserAsync();
 
         // Assert
         act.Should().BeSuccess();
@@ -539,10 +554,26 @@ public class AuthServiceTests
 
     private IAuthService CreateService()
     {
+        var configuration = new ConfigurationBuilder()
+           .SetBasePath(Directory.GetCurrentDirectory())
+           .AddJsonFile("appsettings.Testing.json", optional: false, reloadOnChange: false)
+           .Build();
+
+        var settings = Options.Create(configuration
+            .GetSection(nameof(SecuritySettings))
+            .Get<SecuritySettings>(opt => opt.BindNonPublicProperties = true));
+
         _serviceMock = new Mock<ITokenService>();
         _repositoryMock = new Mock<IUserRepository>();
         _loggerMock = new Mock<ILogger<AuthService>>();
-        return new AuthService(_serviceMock.Object, _repositoryMock.Object, _loggerMock.Object);
+        _httpContextMock = new Mock<IHttpContextAccessor>();
+
+        return new AuthService(
+            _serviceMock.Object,
+            _repositoryMock.Object,
+            _httpContextMock.Object,
+            _loggerMock.Object,
+            settings);
     }
 
     private static SignUpRequest CreateSignUpRequest(string name, string emailAddress, string password, string confirmPassword)
@@ -551,8 +582,8 @@ public class AuthServiceTests
     private static SignInRequest CreateSignInRequest(string email, string password)
         => new(email, password);
 
-    private static RefreshAuthenticationRequest CreateRefreshTokenRequest(Guid userId, string refreshToken)
-        => new(userId, refreshToken);
+    private static RefreshAuthenticationRequest CreateRefreshTokenRequest(string refreshToken)
+        => new(refreshToken);
 
     #endregion
 }

@@ -1,8 +1,10 @@
 using System;
 using System.IO;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using FluentAssertions;
 using FluentResults.Extensions.FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +24,8 @@ namespace WeLudic.Tests.Application.Services;
 public class GamesServiceTests
 {
     private Mock<IRouletteOptionsRepository> _repositoryMock;
+    private Mock<IRouletteSessionRepository> _sessionRepositoryMock;
+    private Mock<IRouletteSessionOptionRepository> _sessionOptionRepositoryMock;
     private Mock<IMapper> _mapperMock;
     private Mock<IHttpContextAccessor> _httpContextMock;
     private Mock<ILogger<GamesService>> _loggerMock;
@@ -30,17 +34,8 @@ public class GamesServiceTests
     public async Task Should_ReturnsUnauthorizedError_WhenNotFoundUserAuthenticated()
     {
         // Arrange
-        using var service = CreateService();
+        using var service = CreateService(success: false);
         const string errorMessage = "Acesso negado";
-
-        var user = new ClaimsPrincipal(
-                   new ClaimsIdentity(
-                   new Claim[]
-                   {
-                       new Claim("ClaimKey", Guid.NewGuid().ToString())
-                   }));
-
-        _httpContextMock.Setup(s => s.HttpContext.User).Returns(user);
 
         // Act
         var act = await service.GetRouletteOptions();
@@ -49,9 +44,25 @@ public class GamesServiceTests
         act.Should().BeFailure().And.HaveReason(errorMessage);
     }
 
+    [Fact]
+    public async Task Should_ReturnsEmptyList_WhenNoneOptionsWasFound()
+    {
+        // Arrange
+        using var service = CreateService();
+        _repositoryMock.Setup(p => p.GetOptionsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()));
+
+        // Act
+        var act = await service.GetRouletteOptions();
+
+        // Assert
+        act.Should().BeSuccess();
+        act.Value.Should().BeNullOrEmpty();
+    }
+
+
     #region Private Methods
 
-    private IGamesService CreateService()
+    private IGamesService CreateService(bool success = true)
     {
         var configuration = new ConfigurationBuilder()
            .SetBasePath(Directory.GetCurrentDirectory())
@@ -62,12 +73,32 @@ public class GamesServiceTests
             .GetSection(nameof(SecuritySettings))
             .Get<SecuritySettings>(opt => opt.BindNonPublicProperties = true));
 
+        var key = success ? settings.Value.ClaimKey : "ClaimKey";
+        var user = new ClaimsPrincipal(
+                  new ClaimsIdentity(
+                  new Claim[]
+                  {
+                       new Claim(key, Guid.NewGuid().ToString())
+                  }));
+
         _repositoryMock = new Mock<IRouletteOptionsRepository>();
+        _sessionRepositoryMock = new Mock<IRouletteSessionRepository>();
+        _sessionOptionRepositoryMock = new Mock<IRouletteSessionOptionRepository>();
         _mapperMock = new Mock<IMapper>();
         _httpContextMock = new Mock<IHttpContextAccessor>();
+
+        _httpContextMock.Setup(s => s.HttpContext.User).Returns(user);
+
         _loggerMock = new Mock<ILogger<GamesService>>();
 
-        return new GamesService(_repositoryMock.Object, _mapperMock.Object, _httpContextMock.Object, _loggerMock.Object, settings);
+        return new GamesService(
+            _repositoryMock.Object,
+            _sessionRepositoryMock.Object,
+            _sessionOptionRepositoryMock.Object,
+            _mapperMock.Object,
+            _httpContextMock.Object,
+            _loggerMock.Object,
+            settings);
     }
 
     #endregion

@@ -3,15 +3,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Requests.Auth;
-using WeLudic.Application.Responses;
+using WeLudic.Application.Responses.Auth;
 using WeLudic.Shared.Extensions;
 using WeLudic.Shared.Responses;
 
 namespace WeLudic.PublicApi.Controllers;
 
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
-[AllowAnonymous]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _service;
@@ -23,6 +23,7 @@ public class AuthController : ControllerBase
     /// </summary>
     /// <response code="200"> Retorna chaves de acesso.</response>
     /// <response code="500"></response>
+    [AllowAnonymous]
     [HttpPost("signup")]
     [Consumes(MediaTypeNames.Application.Json)]
     [Produces(MediaTypeNames.Application.Json)]
@@ -36,6 +37,7 @@ public class AuthController : ControllerBase
     /// </summary>
     /// <response code="200"> Retorna chaves de acesso.</response>
     /// <response code="500"></response>
+    [AllowAnonymous]
     [HttpPost("signin")]
     [Consumes(MediaTypeNames.Application.Json)]
     [Produces(MediaTypeNames.Application.Json)]
@@ -68,8 +70,8 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<TokenResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Logout([FromBody] Guid userId)
-        => (await _service.LogoutAsync(userId)).ToActionResult();
+    public async Task<IActionResult> Logout()
+        => (await _service.LogoutAsync()).ToActionResult();
 
     /// <summary>
     /// Retorna informações do usuário logado.
@@ -79,6 +81,6 @@ public class AuthController : ControllerBase
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetCurrentUser([FromBody] Guid userId)
-        => (await _service.GetCurrentUserAsync(userId)).ToActionResult();
+    public async Task<IActionResult> GetCurrentUser()
+        => (await _service.GetCurrentUserAsync()).ToActionResult();
 }

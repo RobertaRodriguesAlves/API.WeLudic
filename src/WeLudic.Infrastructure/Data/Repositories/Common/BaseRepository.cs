@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using WeLudic.Infrastructure.Data.Context;
-using WeLudic.Shared.Abstractions;
 
 namespace WeLudic.Infrastructure.Data.Repositories.Common;
 
-public abstract class BaseRepository<TEntity> : IDisposable where TEntity : class, IAudit
+public abstract class BaseRepository<TEntity> : IDisposable where TEntity : class
 {
     private readonly WeLudicContext _dbContext;
     protected readonly DbSet<TEntity> DbSet;

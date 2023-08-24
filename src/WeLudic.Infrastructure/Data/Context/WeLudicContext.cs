@@ -13,6 +13,10 @@ public sealed class WeLudicContext : DbContext
     }
 
     public DbSet<User> Users => Set<User>();
+    public DbSet<Patient> Patients => Set<Patient>();
+    public DbSet<RouletteOption> RouletteOptions => Set<RouletteOption>();
+    public DbSet<RouletteSession> RouletteSessions => Set<RouletteSession>();
+    public DbSet<RouletteSessionOption> RouletteSessionOptions => Set<RouletteSessionOption>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         => modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

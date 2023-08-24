@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WeLudic.Infrastructure.Data.Context;
 
@@ -10,9 +11,10 @@ using WeLudic.Infrastructure.Data.Context;
 namespace WeLudic.PublicApi.Migrations
 {
     [DbContext(typeof(WeLudicContext))]
-    partial class WeLudicContextModelSnapshot : ModelSnapshot
+    [Migration("20230815105647_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -112,231 +114,231 @@ namespace WeLudic.PublicApi.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4292),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9645),
                             IsDeleted = false,
                             Name = "DESENHAR O QUE QUISER"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4298),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9648),
                             IsDeleted = false,
                             Name = "DESENHAR O QUE O TERAPEUTA PEDIR"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4298),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9707),
                             IsDeleted = false,
                             Name = "DESENHAR MEUS SONHOS"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4299),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9708),
                             IsDeleted = false,
                             Name = "COLORIR MEUS MEDOS"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4300),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9709),
                             IsDeleted = false,
                             Name = "COLORIR MEUS PESADELOS"
                         },
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4301),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9710),
                             IsDeleted = false,
                             Name = "COLORIR UM DESENHO"
                         },
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4301),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9711),
                             IsDeleted = false,
                             Name = "INVENTAR UMA HISTÓRIA"
                         },
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4302),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9712),
                             IsDeleted = false,
                             Name = "CINETERAPIA"
                         },
                         new
                         {
                             Id = 9,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4303),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9713),
                             IsDeleted = false,
                             Name = "ATIVIDADE COM A FAMÍLIA TODA"
                         },
                         new
                         {
                             Id = 10,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4304),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9714),
                             IsDeleted = false,
                             Name = "ATIVIDADE COM O(S) IRMÃO(S)"
                         },
                         new
                         {
                             Id = 11,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4304),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9714),
                             IsDeleted = false,
                             Name = "ATIVIDADE COM OS PAIS"
                         },
                         new
                         {
                             Id = 12,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4305),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9715),
                             IsDeleted = false,
                             Name = "ATIVIDADE COM A MÃE"
                         },
                         new
                         {
                             Id = 13,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4306),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9716),
                             IsDeleted = false,
                             Name = "ATIVIDADE COM O PAI"
                         },
                         new
                         {
                             Id = 14,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4307),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9717),
                             IsDeleted = false,
                             Name = "ATIVIDADE COM A VOVÓ"
                         },
                         new
                         {
                             Id = 15,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4307),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9718),
                             IsDeleted = false,
                             Name = "ATIVIDADE COM O VOVÔ"
                         },
                         new
                         {
                             Id = 16,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4308),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9719),
                             IsDeleted = false,
                             Name = "ATIVIDADE COM UM AMIGO OU AMIGA"
                         },
                         new
                         {
                             Id = 17,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4309),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9719),
                             IsDeleted = false,
                             Name = "DOBRADURA"
                         },
                         new
                         {
                             Id = 18,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4309),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9720),
                             IsDeleted = false,
                             Name = "MÍMICA"
                         },
                         new
                         {
                             Id = 19,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4310),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9721),
                             IsDeleted = false,
                             Name = "JOGO: O MESTRE MANDOU"
                         },
                         new
                         {
                             Id = 20,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4311),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9722),
                             IsDeleted = false,
                             Name = "ESCUTAR UMA MÚSICA"
                         },
                         new
                         {
                             Id = 21,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4311),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9723),
                             IsDeleted = false,
                             Name = "BRINCAR DE MEDITAR"
                         },
                         new
                         {
                             Id = 22,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4312),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9724),
                             IsDeleted = false,
                             Name = "UTILIZAR BRINQUEDOS ESPECIAIS"
                         },
                         new
                         {
                             Id = 23,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4313),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9725),
                             IsDeleted = false,
                             Name = "CONTAR PIADAS"
                         },
                         new
                         {
                             Id = 24,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4313),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9725),
                             IsDeleted = false,
                             Name = "CONTAR CHARADAS"
                         },
                         new
                         {
                             Id = 25,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4314),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9726),
                             IsDeleted = false,
                             Name = "JOGO: O QUE É O QUE É"
                         },
                         new
                         {
                             Id = 26,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4315),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9727),
                             IsDeleted = false,
                             Name = "LER UMA HISTÓRIA"
                         },
                         new
                         {
                             Id = 27,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4315),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9728),
                             IsDeleted = false,
                             Name = "OUVIR UMA HISTÓRIA"
                         },
                         new
                         {
                             Id = 28,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4316),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9729),
                             IsDeleted = false,
                             Name = "ESCREVER UMA HISTÓRIA"
                         },
                         new
                         {
                             Id = 29,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4317),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9730),
                             IsDeleted = false,
                             Name = "USAR CAIXA DE ARTES"
                         },
                         new
                         {
                             Id = 30,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4317),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9731),
                             IsDeleted = false,
                             Name = "BRINCAR DE ADIVINHE O DESENHO"
                         },
                         new
                         {
                             Id = 31,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4318),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9732),
                             IsDeleted = false,
                             Name = "JOGO: MEMÓRIA & ANIMAIS"
                         },
                         new
                         {
                             Id = 32,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4319),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9733),
                             IsDeleted = false,
                             Name = "JOGO: PRECISO DE AJUDA"
                         },
                         new
                         {
                             Id = 33,
-                            CreatedAt = new DateTime(2023, 8, 21, 9, 13, 7, 491, DateTimeKind.Utc).AddTicks(4319),
+                            CreatedAt = new DateTime(2023, 8, 15, 10, 56, 46, 790, DateTimeKind.Utc).AddTicks(9733),
                             IsDeleted = false,
                             Name = "JOGO: GOSTO / NÃO GOSTO"
                         });
@@ -359,10 +361,20 @@ namespace WeLudic.PublicApi.Migrations
                     b.Property<Guid?>("LastModifiedBy")
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("RouletteOptionId")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("char(36)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("RouletteOptionId");
 
                     b.HasIndex("UserId");
 
@@ -464,6 +476,18 @@ namespace WeLudic.PublicApi.Migrations
 
             modelBuilder.Entity("WeLudic.Domain.Entities.RouletteSession", b =>
                 {
+                    b.HasOne("WeLudic.Domain.Entities.Patient", null)
+                        .WithMany("RouletteSessions")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WeLudic.Domain.Entities.RouletteOption", null)
+                        .WithMany("RouletteSessions")
+                        .HasForeignKey("RouletteOptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("WeLudic.Domain.Entities.User", null)
                         .WithMany("RouletteSessions")
                         .HasForeignKey("UserId")
@@ -486,9 +510,16 @@ namespace WeLudic.PublicApi.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("WeLudic.Domain.Entities.Patient", b =>
+                {
+                    b.Navigation("RouletteSessions");
+                });
+
             modelBuilder.Entity("WeLudic.Domain.Entities.RouletteOption", b =>
                 {
                     b.Navigation("RouletteSessionOptions");
+
+                    b.Navigation("RouletteSessions");
                 });
 
             modelBuilder.Entity("WeLudic.Domain.Entities.RouletteSession", b =>

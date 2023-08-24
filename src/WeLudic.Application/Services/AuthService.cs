@@ -1,11 +1,14 @@
 using FluentResults;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Requests.Auth;
-using WeLudic.Application.Responses;
+using WeLudic.Application.Responses.Auth;
 using WeLudic.Domain.Entities;
 using WeLudic.Domain.Interfaces;
 using WeLudic.Infrastructure.Security.Interfaces;
+using WeLudic.Shared.AppSettings;
 using WeLudic.Shared.Errors;
 using WeLudic.Shared.Extensions;
 using WeLudic.Shared.Models;
@@ -19,14 +22,23 @@ public class AuthService : IAuthService
     private readonly IUserRepository _repository;
     private readonly ILogger<AuthService> _logger;
 
+    private readonly SecuritySettings _settings;
+    private readonly string _userId;
+
     public AuthService(
         ITokenService service,
         IUserRepository repository,
-        ILogger<AuthService> logger)
+        IHttpContextAccessor httpAccessor,
+        ILogger<AuthService> logger,
+        IOptions<SecuritySettings> options)
     {
         _service = service;
         _repository = repository;
         _logger = logger;
+        _settings = options.Value;
+
+        _userId = httpAccessor.HttpContext.User.Claims.FirstOrDefault(ac => ac.Type == _settings.ClaimKey)?.Value;
+
     }
 
     public async Task<Result<SignupResponse>> SignUpAsync(SignUpRequest request)
@@ -93,7 +105,9 @@ public class AuthService : IAuthService
         if (!request.IsValid)
             return request.ToFail();
 
-        var user = await _repository.GetByIdAsync(request.UserId);
+        Guid.TryParse(_userId, out var userId);
+
+        var user = await _repository.GetByIdAsync(userId);
         if (user is null ||
             !BC.BCrypt.Verify(request.RefreshToken, user.RefreshToken) ||
             DateTime.UtcNow > user.ExpirationAt)
@@ -108,11 +122,9 @@ public class AuthService : IAuthService
         return Result.Ok(new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken));
     }
 
-    public async Task<Result> LogoutAsync(Guid userId)
+    public async Task<Result> LogoutAsync()
     {
-        if (userId == Guid.Empty)
-            return Result.Fail(new ValidationError("Informação inválida"));
-
+        Guid.TryParse(_userId, out var userId);
         var user = await _repository.GetByIdAsync(userId);
         if (user is null)
         {
@@ -126,10 +138,9 @@ public class AuthService : IAuthService
         return Result.Ok();
     }
 
-    public async Task<Result<UserResponse>> GetCurrentUserAsync(Guid userId)
+    public async Task<Result<UserResponse>> GetCurrentUserAsync()
     {
-        if (userId == Guid.Empty)
-            return Result.Fail(new ValidationError("Informação inválida"));
+        Guid.TryParse(_userId, out var userId);
 
         var user = await _repository.GetByIdAsync(userId);
         if (user is null)

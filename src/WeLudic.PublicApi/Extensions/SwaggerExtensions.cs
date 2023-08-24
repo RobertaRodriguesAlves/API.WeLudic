@@ -1,4 +1,3 @@
-using System.Reflection;
 using Microsoft.OpenApi.Models;
 
 namespace WeLudic.PublicApi.Extensions;

@@ -105,7 +105,9 @@ public class AuthService : IAuthService
         if (!request.IsValid)
             return request.ToFail();
 
-        var user = await _repository.GetByIdAsync(Guid.Parse(_userId));
+        Guid.TryParse(_userId, out var userId);
+
+        var user = await _repository.GetByIdAsync(userId);
         if (user is null ||
             !BC.BCrypt.Verify(request.RefreshToken, user.RefreshToken) ||
             DateTime.UtcNow > user.ExpirationAt)
@@ -122,7 +124,8 @@ public class AuthService : IAuthService
 
     public async Task<Result> LogoutAsync()
     {
-        var user = await _repository.GetByIdAsync(Guid.Parse(_userId));
+        Guid.TryParse(_userId, out var userId);
+        var user = await _repository.GetByIdAsync(userId);
         if (user is null)
         {
             _logger.LogError("Usuário não encontrado.");
@@ -137,7 +140,9 @@ public class AuthService : IAuthService
 
     public async Task<Result<UserResponse>> GetCurrentUserAsync()
     {
-        var user = await _repository.GetByIdAsync(Guid.Parse(_userId));
+        Guid.TryParse(_userId, out var userId);
+
+        var user = await _repository.GetByIdAsync(userId);
         if (user is null)
         {
             _logger.LogError("Usuário não encontrado.");

@@ -60,18 +60,16 @@ public class GamesService : IGamesService
 
     public async Task<Result<Guid>> CreateRouletteSessionAsync(CreateRouletteSessionRequest request)
     {
-        _logger.LogInformation("Validando informações recebidas");
+        Guid.TryParse(_userId, out var userId);
+
+        if (userId == Guid.Empty)
+            return Result.Fail(new UnauthorizedError("Acesso negado"));
 
         await request.ValidateAsync();
         if (!request.IsValid)
             return request.ToFail();
 
-        if (string.IsNullOrWhiteSpace(_userId))
-            return Result.Fail(new UnauthorizedError("Acesso negado"));
-
-        var session = new RouletteSession()
-                     .SetRouletteSession(Guid.Parse(_userId));
-
+        var session = new RouletteSession().SetRouletteSession(userId);
         var sessionId = await _sessionRepository.CreateSessionAsync(session);
         await _sessionOptionRepository.CreateSessionOptionAsync(sessionId, request.Options);
 
@@ -85,7 +83,6 @@ public class GamesService : IGamesService
 
         var sessionOptions = await _sessionOptionRepository.GetOptionsBySessionIdAsync(sessionId);
         var optionsId = ConvertComplexTypeIntoListOfInt(sessionOptions);
-
         var rouletteOptions = await _optionsRepository.GetOptionByIdAsync(optionsId);
         return Result.Ok(_mapper.Map<IEnumerable<RouletteOptionsResponse>>(rouletteOptions));
     }

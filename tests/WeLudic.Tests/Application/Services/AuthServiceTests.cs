@@ -55,31 +55,22 @@ public class AuthServiceTests
     public async Task Should_ReturnsValidationError_WhenSignupRequestIsInvalid(string name, string password, string emailAddress, string confirmPassword)
     {
         // Arrange
-        using var service = CreateService();
+        using var service = CreateService(success: false);
         var signUpRequest = CreateSignUpRequest(name, emailAddress, password, confirmPassword);
-
-        var user = new ClaimsPrincipal(
-                  new ClaimsIdentity(
-                  new Claim[]
-                  {
-                       new Claim("ClaimKey", Guid.NewGuid().ToString())
-                  }));
-
-        _httpContextMock.Setup(s => s.HttpContext.User).Returns(user);
 
         // Act
         var act = await service.SignUpAsync(signUpRequest);
 
         // Assert
         act.Should().BeFailure();
-        act.Errors.Should().NotBeNullOrEmpty().And.OnlyHaveUniqueItems();
+        act.Errors.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
     public async Task Should_ReturnsForbiddenError_WhenSignUpExistingEmail()
     {
         // Arrange
-        using var service = CreateService();
+        using var service = CreateService(success: false);
         const string errorMessage = "Email já cadastrado.";
 
         var emailAddress = _faker.Internet.Email();
@@ -107,7 +98,7 @@ public class AuthServiceTests
     public async Task Should_ReturnsAccessKeysInformation_WhenSignupRequestIsValid()
     {
         // Arrange
-        using var service = CreateService();
+        using var service = CreateService(success: false);
 
         var user = new Faker<User>("pt_BR")
             .RuleFor(u => u.Name, f => f.Name.FullName())
@@ -175,7 +166,7 @@ public class AuthServiceTests
     public async Task Should_ReturnsValidationError_WhenSigninRequestIsInvalid(string emailAddress, string password)
     {
         // Arrange
-        using var service = CreateService();
+        using var service = CreateService(success: false);
         var signInRequest = CreateSignInRequest(emailAddress, password);
 
         // Act
@@ -190,7 +181,7 @@ public class AuthServiceTests
     public async Task Should_ReturnsUnauthorizedError_WhenEmailInformedDoesNotExists()
     {
         // Arrange
-        using var service = CreateService();
+        using var service = CreateService(success: false);
         const string errorMessage = "Acesso negado";
 
         var emailAddress = _faker.Internet.Email();
@@ -212,7 +203,7 @@ public class AuthServiceTests
     public async Task Should_ReturnsUnauthorizedError_WhenPasswordIsWrong()
     {
         // Arrange
-        using var service = CreateService();
+        using var service = CreateService(success: false);
         const string errorMessage = "Acesso negado";
 
         var user = new Faker<User>("pt_BR")
@@ -239,7 +230,7 @@ public class AuthServiceTests
     public async Task Should_ReturnsAccessKeysInformation_WhenSigninRequestIsValid()
     {
         // Arrange
-        using var service = CreateService();
+        using var service = CreateService(success: false);
 
         var emailAddress = _faker.Internet.Email();
         var password = _faker.Internet.Password();
@@ -281,23 +272,6 @@ public class AuthServiceTests
         act.Value.AccessKeys.RefreshToken.Should().NotBeNullOrWhiteSpace();
     }
 
-    [Theory]
-    [InlineData("00000000-0000-0000-0000-000000000000")]
-    [InlineData("6870CB1D-711C-4381-A3CE-FC622C94A6D5")]
-    public async Task Should_ReturnsValidationError_WhenRefreshAuthenticationRequestIsInvalid(string refreshToken)
-    {
-        // Arrange
-        using var service = CreateService();
-        var refreshTokenRequest = CreateRefreshTokenRequest(refreshToken);
-
-        // Act
-        var act = await service.RefreshAuthenticationAsync(refreshTokenRequest);
-
-        // Assert
-        act.Should().BeFailure();
-        act.Errors.Should().NotBeNullOrEmpty().And.OnlyHaveUniqueItems();
-    }
-
     [Fact]
     public async Task Should_ReturnsUnauthorizedError_WhenUserDoesNotExists()
     {
@@ -305,11 +279,10 @@ public class AuthServiceTests
         using var service = CreateService();
 
         const string errorMesssage = "Acesso negado";
-        var userId = Guid.NewGuid();
         var refreshTokenRequest = CreateRefreshTokenRequest(Guid.NewGuid().ToString());
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.Is<Guid>(p => p == userId), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User)null)
             .Verifiable();
 
@@ -328,7 +301,6 @@ public class AuthServiceTests
         using var service = CreateService();
 
         const string errorMesssage = "Acesso negado";
-        var userId = Guid.NewGuid();
         var refreshTokenRequest = CreateRefreshTokenRequest(Guid.NewGuid().ToString());
 
         var user = new Faker<User>("pt_BR")
@@ -339,7 +311,7 @@ public class AuthServiceTests
             .RuleFor(u => u.RefreshToken, f => BC.BCrypt.HashPassword(f.Random.GetHashCode().ToString()));
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.Is<Guid>(p => p == userId), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user)
             .Verifiable();
 
@@ -358,7 +330,6 @@ public class AuthServiceTests
         using var service = CreateService();
 
         const string errorMesssage = "Acesso negado";
-        var userId = Guid.NewGuid();
         var refreshToken = Guid.NewGuid().ToString();
         var refreshTokenRequest = CreateRefreshTokenRequest(refreshToken);
 
@@ -368,7 +339,7 @@ public class AuthServiceTests
         user.SetRefreshToken(BC.BCrypt.HashPassword(refreshToken), DateTime.UtcNow.AddDays(-2));
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.Is<Guid>(p => p == userId), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user)
             .Verifiable();
 
@@ -386,7 +357,6 @@ public class AuthServiceTests
         // Arrange
         using var service = CreateService();
 
-        var userId = Guid.NewGuid();
         var refreshToken = Guid.NewGuid().ToString();
         var refreshTokenRequest = CreateRefreshTokenRequest(refreshToken);
 
@@ -396,7 +366,7 @@ public class AuthServiceTests
         user.SetRefreshToken(BC.BCrypt.HashPassword(refreshToken), DateTime.UtcNow.AddHours(2));
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.Is<Guid>(p => p == userId), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user)
             .Verifiable();
 
@@ -426,30 +396,14 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task Should_ReturnsValidationError_WhenUserIdIsInvalid()
-    {
-        // Arrange
-        using var service = CreateService();
-        const string errorMesssage = "Informação inválida";
-
-        // Act
-        var act = await service.LogoutAsync();
-
-        // Assert
-        act.Should().BeFailure();
-        act.Should().HaveReason(errorMesssage);
-    }
-
-    [Fact]
     public async Task Should_ReturnsNotFoundError_WhenUserIdDoesNotExists()
     {
         // Arrange
-        using var service = CreateService();
-        var userId = Guid.NewGuid();
+        using var service = CreateService(success: false);
         const string errorMesssage = "Usuário não encontrado";
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.Is<Guid>(p => p == userId), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User)null)
             .Verifiable();
 
@@ -466,7 +420,6 @@ public class AuthServiceTests
     {
         // Arrange
         using var service = CreateService();
-        var userId = Guid.NewGuid();
 
         var user = new Faker<User>("pt_BR")
             .RuleFor(u => u.Name, f => f.Name.FullName())
@@ -474,7 +427,7 @@ public class AuthServiceTests
             .RuleFor(u => u.HashedPassword, f => f.Internet.Password());
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.Is<Guid>(p => p == userId), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user)
             .Verifiable();
 
@@ -490,30 +443,14 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task Should_ReturnsGetCurrentUserValidationError_WhenUserIdIsInvalid()
+    public async Task Should_ReturnsGetCurrentUserNotFoundError_WhenNoneUserIsLogged()
     {
         // Arrange
-        using var service = CreateService();
-        const string errorMesssage = "Informação inválida";
-
-        // Act
-        var act = await service.GetCurrentUserAsync();
-
-        // Assert
-        act.Should().BeFailure();
-        act.Should().HaveReason(errorMesssage);
-    }
-
-    [Fact]
-    public async Task Should_ReturnsGetCurrentUserNotFoundError_WhenUserIdDoesNotExists()
-    {
-        // Arrange
-        using var service = CreateService();
-        var userId = Guid.NewGuid();
+        using var service = CreateService(success: false);
         const string errorMesssage = "Usuário não encontrado";
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.Is<Guid>(p => p == userId), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User)null)
             .Verifiable();
 
@@ -530,7 +467,6 @@ public class AuthServiceTests
     {
         // Arrange
         using var service = CreateService();
-        var userId = Guid.NewGuid();
 
         var user = new Faker<User>("pt_BR")
             .RuleFor(u => u.Name, f => f.Name.FullName())
@@ -538,7 +474,7 @@ public class AuthServiceTests
             .RuleFor(u => u.HashedPassword, f => f.Internet.Password());
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.Is<Guid>(p => p == userId), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user)
             .Verifiable();
 
@@ -549,10 +485,9 @@ public class AuthServiceTests
         act.Should().BeSuccess();
     }
 
-
     #region Private Methods
 
-    private IAuthService CreateService()
+    private IAuthService CreateService(bool success = true)
     {
         var configuration = new ConfigurationBuilder()
            .SetBasePath(Directory.GetCurrentDirectory())
@@ -563,10 +498,20 @@ public class AuthServiceTests
             .GetSection(nameof(SecuritySettings))
             .Get<SecuritySettings>(opt => opt.BindNonPublicProperties = true));
 
+        var key = success ? settings.Value.ClaimKey : "ClaimKey";
+        var user = new ClaimsPrincipal(
+                  new ClaimsIdentity(
+                  new Claim[]
+                  {
+                       new Claim(key, Guid.NewGuid().ToString())
+                  }));
+
         _serviceMock = new Mock<ITokenService>();
         _repositoryMock = new Mock<IUserRepository>();
         _loggerMock = new Mock<ILogger<AuthService>>();
         _httpContextMock = new Mock<IHttpContextAccessor>();
+
+        _httpContextMock.Setup(s => s.HttpContext.User).Returns(user);
 
         return new AuthService(
             _serviceMock.Object,

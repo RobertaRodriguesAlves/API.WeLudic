@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WeLudic.Shared\WeLudic.Shared.csproj" />
+    <ProjectReference Include="../WeLudic.Shared/WeLudic.Shared.csproj" />
   </ItemGroup>
 
 </Project>

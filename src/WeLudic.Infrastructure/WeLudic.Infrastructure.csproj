@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WeLudic.Domain\WeLudic.Domain.csproj" />
-    <ProjectReference Include="..\WeLudic.Shared\WeLudic.Shared.csproj" />
+    <ProjectReference Include="../WeLudic.Domain/WeLudic.Domain.csproj" />
+    <ProjectReference Include="../WeLudic.Shared/WeLudic.Shared.csproj" />
   </ItemGroup>
 
 </Project>

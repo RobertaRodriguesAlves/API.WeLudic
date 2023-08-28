@@ -3,6 +3,9 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>0e5c1a36-1d0f-4599-9231-9f124a92d59b</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..</DockerfileContext>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,15 +24,16 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.5.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WeLudic.Application\WeLudic.Application.csproj" />
-    <ProjectReference Include="..\WeLudic.Infrastructure\WeLudic.Infrastructure.csproj" />
-    <ProjectReference Include="..\WeLudic.Shared\WeLudic.Shared.csproj" />
+    <ProjectReference Include="../WeLudic.Application/WeLudic.Application.csproj" />
+    <ProjectReference Include="../WeLudic.Infrastructure/WeLudic.Infrastructure.csproj" />
+    <ProjectReference Include="../WeLudic.Shared/WeLudic.Shared.csproj" />
   </ItemGroup>
 
 </Project>

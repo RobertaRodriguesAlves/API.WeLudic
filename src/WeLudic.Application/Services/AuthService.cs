@@ -58,6 +58,7 @@ public class AuthService : IAuthService
             return Result.Fail(new ForbiddenError("Email já cadastrado."));
         }
 
+        _logger.LogInformation("Criando login. Nome:{user} e Email: {email}.", request.Name, request.Email);
         var createdUser = await _repository.CreateAsync(new User().SetUser(
                                                         request.Name,
                                                         request.Email,
@@ -67,6 +68,8 @@ public class AuthService : IAuthService
 
         var accessKeys = _service.CreateAccessKeys(createdUser.Id, createdUser.Email);
         await UpdateAccessInformationAsync(createdUser, accessKeys);
+
+        _logger.LogInformation("Credenciais criadas e atualizadas.");
 
         return Result.Ok(new SignupResponse(
             new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken),
@@ -81,7 +84,7 @@ public class AuthService : IAuthService
         if (!request.IsValid)
             return request.ToFail();
 
-        _logger.LogInformation("Consultando informações.");
+        _logger.LogInformation("Consultando informações do usuario pelo Email: {email}.", request.Email);
 
         var user = await _repository.GetByEmailAsync(request.Email);
         if (user is null ||
@@ -93,6 +96,8 @@ public class AuthService : IAuthService
 
         var accessKeys = _service.CreateAccessKeys(user.Id, user.Email);
         await UpdateAccessInformationAsync(user, accessKeys);
+
+        _logger.LogInformation("Credenciais criadas e atualizadas.");
 
         return Result.Ok(new SigninResponse(
             new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken),
@@ -107,6 +112,8 @@ public class AuthService : IAuthService
         if (!request.IsValid)
             return request.ToFail();
 
+        _logger.LogInformation("Verificando validade de Refresh Token.");
+
         var user = await _repository.GetByRefreshTokenAsync(_crypt.Encrypt(request.RefreshToken));
         if (user is null ||
             DateTime.UtcNow > user.ExpirationAt)
@@ -118,12 +125,17 @@ public class AuthService : IAuthService
         var accessKeys = _service.CreateAccessKeys(user.Id, user.Email);
         await UpdateAccessInformationAsync(user, accessKeys);
 
+        _logger.LogInformation("Credenciais criadas e atualizadas.");
+
         return Result.Ok(new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken));
     }
 
     public async Task<Result> LogoutAsync()
     {
         Guid.TryParse(_userId, out var userId);
+
+        _logger.LogInformation("Consultando informações do usuario: {id}.", _userId);
+
         var user = await _repository.GetByIdAsync(userId);
         if (user is null)
         {
@@ -134,12 +146,16 @@ public class AuthService : IAuthService
         user.SetRefreshToken(string.Empty, null);
         await _repository.UpdateAsync(user);
 
+        _logger.LogInformation("Logout realizado com sucesso.");
+
         return Result.Ok();
     }
 
     public async Task<Result<UserResponse>> GetCurrentUserAsync()
     {
         Guid.TryParse(_userId, out var userId);
+
+        _logger.LogInformation("Consultando informações do usuario: {id}.", _userId);
 
         var user = await _repository.GetByIdAsync(userId);
         if (user is null)

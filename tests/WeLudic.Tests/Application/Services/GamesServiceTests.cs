@@ -37,20 +37,6 @@ public class GamesServiceTests
     private ILogger<GamesService> _loggerMock;
 
     [Fact]
-    public async Task Should_ReturnsUnauthorizedError_WhenNotFoundUserAuthenticated()
-    {
-        // Arrange
-        using var service = CreateService(success: false);
-        const string errorMessage = "Acesso negado";
-
-        // Act
-        var act = await service.GetRouletteOptions();
-
-        // Assert
-        act.Should().BeFailure().And.HaveReason(errorMessage);
-    }
-
-    [Fact]
     public async Task Should_ReturnsEmptyList_WhenNoneOptionsIsFound()
     {
         // Arrange
@@ -93,23 +79,6 @@ public class GamesServiceTests
         act.Should().BeSuccess();
         act.Value.Should().NotBeNullOrEmpty();
         act.Value.Should().HaveCount(options.Count);
-    }
-
-    [Fact]
-    public async Task Should_ReturnsUnauthorizedErrorWhenCreateSession_WhenNotFoundUserAuthenticated()
-    {
-        // Arrange
-        using var service = CreateService(success: false);
-        const string errorMessage = "Acesso negado";
-
-        var options = new List<int>() { 1, 5, 6, 7, 8 };
-        var request = CreateRouletteSessionRequest(options);
-
-        // Act
-        var act = await service.CreateRouletteSessionAsync(request);
-
-        // Assert
-        act.Should().BeFailure().And.HaveReason(errorMessage);
     }
 
     [Fact]

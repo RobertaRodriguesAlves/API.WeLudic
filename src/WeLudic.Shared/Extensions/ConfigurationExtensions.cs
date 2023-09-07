@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace WeLudic.Shared.Extensions;
 
@@ -11,4 +12,7 @@ public static class ConfigurationExtensions
             options.BindNonPublicProperties = true;
         });
     }
+
+    public static ILogger AddSerilog(this IConfiguration configuration)
+        => new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger();
 }

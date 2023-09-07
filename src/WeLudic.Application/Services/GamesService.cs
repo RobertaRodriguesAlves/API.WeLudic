@@ -46,31 +46,40 @@ public class GamesService : IGamesService
 
     public async Task<Result<IEnumerable<RouletteOptionsResponse>>> GetRouletteOptions()
     {
-        _logger.LogInformation("Validando informação recebida");
+        Guid.TryParse(_userId, out var userId);
 
-        if (string.IsNullOrWhiteSpace(_userId))
-            return Result.Fail(new UnauthorizedError("Acesso negado"));
+        _logger.LogInformation("Validando opções da roleta do usuario logado. Usuario: {id}.", userId);
 
-        var rouletteOptions = await _optionsRepository.GetOptionsAsync(Guid.Parse(_userId));
+        var rouletteOptions = await _optionsRepository.GetOptionsAsync(userId);
         if (!rouletteOptions.Any())
+        {
+            _logger.LogInformation("Nenhuma opção de rolata encontrada para o usuario: {id}.", _userId);
+
             return Result.Ok(Enumerable.Empty<RouletteOptionsResponse>());
+        }
+
+        _logger.LogInformation("Retornando opções encontradas.");
 
         return Result.Ok(_mapper.Map<IEnumerable<RouletteOptionsResponse>>(rouletteOptions));
     }
 
     public async Task<Result<Guid>> CreateRouletteSessionAsync(CreateRouletteSessionRequest request)
     {
-        Guid.TryParse(_userId, out var userId);
-
-        if (userId == Guid.Empty)
-            return Result.Fail(new UnauthorizedError("Acesso negado"));
+        _logger.LogInformation("Validando informações recebidas.");
 
         await request.ValidateAsync();
         if (!request.IsValid)
             return request.ToFail();
 
+        Guid.TryParse(_userId, out var userId);
+
+        _logger.LogInformation("Criando sessão para o usuario: {id}.", userId);
+
         var session = new RouletteSession().SetRouletteSession(userId);
         var sessionId = await _sessionRepository.CreateSessionAsync(session);
+
+        _logger.LogInformation("Sessão criada: {sessao}. Vinculando sessao às opções da roleta.", sessionId);
+
         await _sessionOptionRepository.CreateSessionOptionAsync(sessionId, request.Options);
 
         return Result.Ok(sessionId);
@@ -78,11 +87,19 @@ public class GamesService : IGamesService
 
     public async Task<Result<IEnumerable<RouletteOptionsResponse>>> GetGameOptions(Guid sessionId)
     {
+        _logger.LogInformation("Validando informação recebida.");
+
         if (sessionId == Guid.Empty)
             return Result.Fail(new ValidationError("Informação inválida"));
 
+        _logger.LogInformation("Consultando opções da sessão: {id}.", sessionId);
+
         var sessionOptions = await _sessionOptionRepository.GetOptionsBySessionIdAsync(sessionId);
+
         var optionsId = ConvertComplexTypeIntoListOfInt(sessionOptions);
+
+        _logger.LogInformation("Consultando descrição das opções.");
+
         var rouletteOptions = await _optionsRepository.GetOptionByIdAsync(optionsId);
         return Result.Ok(_mapper.Map<IEnumerable<RouletteOptionsResponse>>(rouletteOptions));
     }

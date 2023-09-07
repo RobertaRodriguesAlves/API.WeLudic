@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Serilog;
 using WeLudic.Application;
 using WeLudic.Infrastructure;
 using WeLudic.Infrastructure.Data.Context;
@@ -16,85 +17,99 @@ using WeLudic.PublicApi.Middlewares;
 using WeLudic.Shared;
 using WeLudic.Shared.Extensions;
 
-var builder = WebApplication.CreateBuilder(args);
+try
+{
+    var builder = WebApplication.CreateBuilder(args);
+    var logger = builder.Configuration.AddSerilog();
 
-builder.Services.Configure<KestrelServerOptions>(options => options.AddServerHeader = false);
-builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
-builder.Services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
-builder.Services.Configure<MvcNewtonsoftJsonOptions>(options => options.SerializerSettings.Configure());
+    builder.Services.Configure<KestrelServerOptions>(options => options.AddServerHeader = false);
+    builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
+    builder.Services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
+    builder.Services.Configure<MvcNewtonsoftJsonOptions>(options => options.SerializerSettings.Configure());
 
-// Add services to the container.
-builder.Services.ConfigureAppSettings();
-builder.Services.AddInfrastructure();
-builder.Services.AddAppServices();
-builder.Services.AddWeLudicDbContext();
+    // Add services to the container.
+    builder.Services.ConfigureAppSettings();
+    builder.Services.AddInfrastructure();
+    builder.Services.AddAppServices();
+    builder.Services.AddWeLudicDbContext();
 
-builder.Services.AddCors();
-builder.Services.AddHttpClient();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddSecurity(builder.Configuration, builder.Environment);
+    builder.Services.AddCors();
+    builder.Services.AddHttpClient();
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddSecurity(builder.Configuration, builder.Environment);
 
-builder.Services
-    .AddControllers()
-    .AddNewtonsoftJson(opt =>
+    builder.Services
+        .AddControllers()
+        .AddNewtonsoftJson(opt =>
+        {
+            opt.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            opt.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Include;
+            opt.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+        });
+
+    builder.Services.AddResponseCompression(opt => opt.Providers.Add<GzipCompressionProvider>());
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwagger();
+
+    builder.WebHost.UseDefaultServiceProvider(opt =>
     {
-        opt.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-        opt.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Include;
-        opt.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+        opt.ValidateScopes = builder.Environment.IsDevelopment();
+        opt.ValidateOnBuild = true;
     });
 
-builder.Services.AddResponseCompression(opt => opt.Providers.Add<GzipCompressionProvider>());
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwagger();
+    var connectionString = builder.Configuration.GetConnectionString("Database");
+    builder.Services.AddHealthChecks(connectionString);
+    builder.Host.UseSerilog(logger);
 
-builder.WebHost.UseDefaultServiceProvider(opt =>
-{
-    opt.ValidateScopes = builder.Environment.IsDevelopment();
-    opt.ValidateOnBuild = true;
-});
+    var app = builder.Build();
 
-var connectionString = builder.Configuration.GetConnectionString("Database");
-builder.Services.AddHealthChecks(connectionString);
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+        app.UseDeveloperExceptionPage();
 
-var app = builder.Build();
+    app.UseSwaggerAndUI();
+    app.UseHealthChecks("/health", new HealthCheckOptions
+    {
+        AllowCachingResponses = false,
+        ResponseWriter = HealthCheckExtensions.WriteResponse
+    });
+    app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+    app.UseMiddleware<ErrorHandlerMiddleware>().UseMiddleware<SecurityHeadersMiddleware>();
+    app.UseRouting();
+    app.UseResponseCompression();
+    app.UseHttpsRedirection();
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.MapControllers();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-    app.UseDeveloperExceptionPage();
+    // Exibe os nomes das propriedades da validação sem os espaços.
+    ValidatorOptions.Global.DisplayNameResolver = (_, member, _) => member?.Name;
 
-app.UseSwaggerAndUI();
-app.UseHealthChecks("/health", new HealthCheckOptions
-{
-    AllowCachingResponses = false,
-    ResponseWriter = HealthCheckExtensions.WriteResponse
-});
-app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-app.UseMiddleware<ErrorHandlerMiddleware>().UseMiddleware<SecurityHeadersMiddleware>();
-app.UseRouting();
-app.UseResponseCompression();
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
+    var mapper = app.Services.GetRequiredService<IMapper>();
 
-// Exibe os nomes das propriedades da validação sem os espaços.
-ValidatorOptions.Global.DisplayNameResolver = (_, member, _) => member?.Name;
+    // Valida os mapeamentos, se existir alguma classe não mapeada corretamente, será lançada uma exceção.
+    mapper.ConfigurationProvider.AssertConfigurationIsValid();
 
-var mapper = app.Services.GetRequiredService<IMapper>();
+    // Cacheia os mapeamentos
+    mapper.ConfigurationProvider.CompileMappings();
 
-// Valida os mapeamentos, se existir alguma classe não mapeada corretamente, será lançada uma exceção.
-mapper.ConfigurationProvider.AssertConfigurationIsValid();
+    // Verifica se existe alguma migração pendente a aplica se necessário.
+    await using var scope = app.Services.CreateAsyncScope();
+    await using var context = scope.ServiceProvider.GetRequiredService<WeLudicContext>();
 
-// Cacheia os mapeamentos
-mapper.ConfigurationProvider.CompileMappings();
+    if ((await context.Database.GetPendingMigrationsAsync()).Any())
+    {
+        logger.Information("------ Creating and migrating the database...");
+        await context.Database.MigrateAsync();
+    }
 
-// Verifica se existe alguma migração pendente a aplica se necessário.
-await using var scope = app.Services.CreateAsyncScope();
-await using var context = scope.ServiceProvider.GetRequiredService<WeLudicContext>();
-
-if ((await context.Database.GetPendingMigrationsAsync()).Any())
-{
-    await context.Database.MigrateAsync();
+    app.Run();
 }
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Error(ex, "Something went wrong.");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

@@ -1,8 +1,6 @@
-using WeLudic.Shared.Responses;
-
 namespace WeLudic.Application.Responses.Auth;
 
-public sealed class TokenResponse : BaseResponse
+public sealed class TokenResponse
 {
     public TokenResponse(string accessToken, DateTime createdAt, DateTime expiresAt, string refreshToken)
     {

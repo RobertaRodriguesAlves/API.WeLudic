@@ -1,5 +1,3 @@
-using WeLudic.Domain.Entities.Common;
-
 namespace WeLudic.Domain.Entities;
 public class RouletteSessionOption
 {

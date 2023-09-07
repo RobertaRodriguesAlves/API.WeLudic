@@ -1,10 +1,9 @@
 using FluentValidation.Results;
 using Newtonsoft.Json;
 
-
 namespace WeLudic.Shared.Requests;
 
-public abstract class BaseRequestWithValidation : BaseRequest
+public abstract class BaseRequestWithValidation
 {
     protected BaseRequestWithValidation() => ValidationResult = new ValidationResult();
 

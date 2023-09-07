@@ -1,8 +1,6 @@
-using WeLudic.Shared.Responses;
-
 namespace WeLudic.Application.Responses.Auth;
 
-public sealed class SigninResponse : BaseResponse
+public sealed class SigninResponse
 {
     public SigninResponse(TokenResponse accessKeys, UserResponse user)
     {

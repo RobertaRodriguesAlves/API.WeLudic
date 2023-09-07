@@ -4,7 +4,7 @@
     <Authors>Andreves Dickow;Roberta Alves</Authors>
     <MaintainerEmail>andreves@dickow.me;rodriguesalves.roberta@gmail.com</MaintainerEmail>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/andrevesdickow/we-ludic</RepositoryUrl>
+    <RepositoryUrl>https://github.com/RobertaRodriguesAlves/API.WeLudic</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <NeutralLanguage>en</NeutralLanguage>
     <LangVersion>latest</LangVersion>

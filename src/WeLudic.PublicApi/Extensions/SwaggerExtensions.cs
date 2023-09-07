@@ -4,10 +4,10 @@ namespace WeLudic.PublicApi.Extensions;
 
 public static class SwaggerExtensions
 {
-    private const string Path = "https://weludic.org";
-
-    public static void AddSwagger(this IServiceCollection services)
+    public static void AddSwagger(this IServiceCollection services, IConfiguration configuration)
     {
+        var path = configuration.GetValue<string>("Business:Url");
+
         services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new OpenApiInfo
@@ -17,7 +17,7 @@ public static class SwaggerExtensions
                 Contact = new OpenApiContact
                 {
                     Name = "WeLudic",
-                    Url = new Uri(Path)
+                    Url = new Uri(path)
                 }
             });
 

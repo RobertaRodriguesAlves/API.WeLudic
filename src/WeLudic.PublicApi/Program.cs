@@ -49,7 +49,7 @@ try
 
     builder.Services.AddResponseCompression(opt => opt.Providers.Add<GzipCompressionProvider>());
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwagger();
+    builder.Services.AddSwagger(builder.Configuration);
 
     builder.WebHost.UseDefaultServiceProvider(opt =>
     {

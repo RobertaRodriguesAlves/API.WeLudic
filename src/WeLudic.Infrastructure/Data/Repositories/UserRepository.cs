@@ -28,6 +28,11 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         .AsNoTracking()
         .FirstOrDefaultAsync(p => p.Id.Equals(id), cancellationToken);
 
+    public async Task<User> GetByRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+         => await DbSet
+        .AsNoTracking()
+        .FirstOrDefaultAsync(p => p.RefreshToken.Equals(refreshToken), cancellationToken);
+
     public async Task UpdateAsync(User user, CancellationToken cancellationToken = default)
     {
         DbSet.Update(user);

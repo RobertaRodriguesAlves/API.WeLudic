@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Moq;
+using NSubstitute;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Profiles;
 using WeLudic.Application.Requests.Games;
@@ -29,12 +29,12 @@ namespace WeLudic.Tests.Application.Services;
 [UnitTest]
 public class GamesServiceTests
 {
-    private Mock<IRouletteOptionsRepository> _optionsRepositoryMock;
-    private Mock<IRouletteSessionRepository> _sessionRepositoryMock;
-    private Mock<IRouletteSessionOptionRepository> _sessionOptionRepositoryMock;
+    private IRouletteOptionsRepository _optionsRepositoryMock;
+    private IRouletteSessionRepository _sessionRepositoryMock;
+    private IRouletteSessionOptionRepository _sessionOptionRepositoryMock;
     private IMapper _mapperMock;
-    private Mock<IHttpContextAccessor> _httpContextMock;
-    private Mock<ILogger<GamesService>> _loggerMock;
+    private IHttpContextAccessor _httpContextMock;
+    private ILogger<GamesService> _loggerMock;
 
     [Fact]
     public async Task Should_ReturnsUnauthorizedError_WhenNotFoundUserAuthenticated()
@@ -55,9 +55,10 @@ public class GamesServiceTests
     {
         // Arrange
         using var service = CreateService();
+
         _optionsRepositoryMock
-            .Setup(p => p.GetOptionsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Enumerable.Empty<RouletteOption>());
+            .GetOptionsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Enumerable.Empty<RouletteOption>());
 
         // Act
         var act = await service.GetRouletteOptions();
@@ -80,8 +81,8 @@ public class GamesServiceTests
         };
 
         _optionsRepositoryMock
-            .Setup(p => p.GetOptionsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(options);
+            .GetOptionsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(options);
 
         _mapperMock.Map<IEnumerable<RouletteOption>, IEnumerable<RouletteOptionsResponse>>(options);
 
@@ -138,16 +139,15 @@ public class GamesServiceTests
         var sessionId = Guid.NewGuid();
 
         _sessionRepositoryMock
-            .Setup(s => s.CreateSessionAsync(It.IsAny<RouletteSession>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(sessionId)
-            .Verifiable();
+            .CreateSessionAsync(Arg.Any<RouletteSession>(), Arg.Any<CancellationToken>())
+            .Returns(sessionId);
 
         _sessionOptionRepositoryMock
-            .Setup(s => s.CreateSessionOptionAsync(
-                It.Is<Guid>(p => p == sessionId),
-                It.IsAny<IEnumerable<int>>(),
-                It.IsAny<CancellationToken>()))
-            .Verifiable();
+            .CreateSessionOptionAsync(
+                Arg.Is<Guid>(p => p == sessionId),
+                Arg.Any<IEnumerable<int>>(),
+                Arg.Any<CancellationToken>())
+            .Wait();
 
         // Act
         var act = await service.CreateRouletteSessionAsync(request);
@@ -179,18 +179,16 @@ public class GamesServiceTests
         var sessionId = Guid.NewGuid();
 
         _sessionOptionRepositoryMock
-            .Setup(s => s.GetOptionsBySessionIdAsync(
-                It.Is<Guid>(p => p == sessionId),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Enumerable.Empty<RouletteSessionOption>)
-            .Verifiable();
+            .GetOptionsBySessionIdAsync(
+                Arg.Is<Guid>(p => p == sessionId),
+                Arg.Any<CancellationToken>())
+            .Returns(Enumerable.Empty<RouletteSessionOption>());
 
         _optionsRepositoryMock
-            .Setup(s => s.GetOptionByIdAsync(
-                It.IsAny<IEnumerable<int>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Enumerable.Empty<RouletteOption>())
-            .Verifiable();
+            .GetOptionByIdAsync(
+                Arg.Any<IEnumerable<int>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Enumerable.Empty<RouletteOption>());
 
         _mapperMock.Map<IEnumerable<RouletteOption>, IEnumerable<RouletteOptionsResponse>>(Enumerable.Empty<RouletteOption>());
 
@@ -226,18 +224,16 @@ public class GamesServiceTests
         };
 
         _sessionOptionRepositoryMock
-            .Setup(s => s.GetOptionsBySessionIdAsync(
-                It.Is<Guid>(p => p == sessionId),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(sessionOptions)
-            .Verifiable();
+            .GetOptionsBySessionIdAsync(
+                Arg.Is<Guid>(p => p == sessionId),
+                Arg.Any<CancellationToken>())
+            .Returns(sessionOptions);
 
         _optionsRepositoryMock
-            .Setup(s => s.GetOptionByIdAsync(
-                It.IsAny<IEnumerable<int>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(options)
-            .Verifiable();
+            .GetOptionByIdAsync(
+                Arg.Any<IEnumerable<int>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(options);
 
         _mapperMock.Map<IEnumerable<RouletteOption>, IEnumerable<RouletteOptionsResponse>>(options);
 
@@ -271,25 +267,25 @@ public class GamesServiceTests
                        new Claim(key, Guid.NewGuid().ToString())
                   }));
 
-        _optionsRepositoryMock = new Mock<IRouletteOptionsRepository>();
-        _sessionRepositoryMock = new Mock<IRouletteSessionRepository>();
-        _sessionOptionRepositoryMock = new Mock<IRouletteSessionOptionRepository>();
+        _optionsRepositoryMock = Substitute.For<IRouletteOptionsRepository>();
+        _sessionRepositoryMock = Substitute.For<IRouletteSessionRepository>();
+        _sessionOptionRepositoryMock = Substitute.For<IRouletteSessionOptionRepository>();
 
         var config = new MapperConfiguration(cfg => cfg.AddProfile<DomainToResponseProfile>());
         _mapperMock = config.CreateMapper();
-        _httpContextMock = new Mock<IHttpContextAccessor>();
+        _httpContextMock = Substitute.For<IHttpContextAccessor>();
 
-        _httpContextMock.Setup(s => s.HttpContext.User).Returns(user);
+        _httpContextMock.HttpContext.User.Returns(user);
 
-        _loggerMock = new Mock<ILogger<GamesService>>();
+        _loggerMock = Substitute.For<ILogger<GamesService>>();
 
         return new GamesService(
-            _optionsRepositoryMock.Object,
-            _sessionRepositoryMock.Object,
-            _sessionOptionRepositoryMock.Object,
+            _optionsRepositoryMock,
+            _sessionRepositoryMock,
+            _sessionOptionRepositoryMock,
             _mapperMock,
-            _httpContextMock.Object,
-            _loggerMock.Object,
+            _httpContextMock,
+            _loggerMock,
             settings);
     }
 

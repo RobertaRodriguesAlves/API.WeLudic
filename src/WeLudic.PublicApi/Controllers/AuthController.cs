@@ -52,6 +52,7 @@ public class AuthController : ControllerBase
     /// </summary>
     /// <response code="200"> Retorna chaves de acesso.</response>
     /// <response code="500"></response>
+    [AllowAnonymous]
     [HttpPost("refresh-token")]
     [Consumes(MediaTypeNames.Application.Json)]
     [Produces(MediaTypeNames.Application.Json)]

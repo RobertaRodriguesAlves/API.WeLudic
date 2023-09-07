@@ -13,6 +13,7 @@ public static class ServicesCollectionExtensions
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<ICryptService, CryptService>();
 
         // Adicionando automaticamente todos os serviços no ASP.NET Core DI que herdam a interface IAppService
         // REF: https://github.com/khellang/Scrutor

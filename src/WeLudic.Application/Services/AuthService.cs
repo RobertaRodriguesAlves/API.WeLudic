@@ -12,13 +12,13 @@ using WeLudic.Shared.AppSettings;
 using WeLudic.Shared.Errors;
 using WeLudic.Shared.Extensions;
 using WeLudic.Shared.Models;
-using BC = BCrypt.Net;
 
 namespace WeLudic.Application.Services;
 
 public class AuthService : IAuthService
 {
     private readonly ITokenService _service;
+    private readonly ICryptService _crypt;
     private readonly IUserRepository _repository;
     private readonly ILogger<AuthService> _logger;
 
@@ -27,12 +27,14 @@ public class AuthService : IAuthService
 
     public AuthService(
         ITokenService service,
+        ICryptService crypt,
         IUserRepository repository,
         IHttpContextAccessor httpAccessor,
         ILogger<AuthService> logger,
         IOptions<SecuritySettings> options)
     {
         _service = service;
+        _crypt = crypt;
         _repository = repository;
         _logger = logger;
         _settings = options.Value;
@@ -59,7 +61,7 @@ public class AuthService : IAuthService
         var createdUser = await _repository.CreateAsync(new User().SetUser(
                                                         request.Name,
                                                         request.Email,
-                                                        BC.BCrypt.HashPassword(request.Password)));
+                                                        _crypt.Encrypt(request.Password)));
 
         _logger.LogInformation("Gerando credenciais de acesso");
 
@@ -83,7 +85,7 @@ public class AuthService : IAuthService
 
         var user = await _repository.GetByEmailAsync(request.Email);
         if (user is null ||
-            !BC.BCrypt.Verify(request.Password, user.HashedPassword))
+            !_crypt.Verify(request.Password, user?.HashedPassword)) 
         {
             _logger.LogError("Acesso negado, informações não encontradas ou não conferem.");
             return Result.Fail(new UnauthorizedError("Acesso negado"));
@@ -105,11 +107,8 @@ public class AuthService : IAuthService
         if (!request.IsValid)
             return request.ToFail();
 
-        Guid.TryParse(_userId, out var userId);
-
-        var user = await _repository.GetByIdAsync(userId);
+        var user = await _repository.GetByRefreshTokenAsync(_crypt.Encrypt(request.RefreshToken));
         if (user is null ||
-            !BC.BCrypt.Verify(request.RefreshToken, user.RefreshToken) ||
             DateTime.UtcNow > user.ExpirationAt)
         {
             _logger.LogError("Acesso negado, informações inválidas ou expiradas.");
@@ -158,8 +157,8 @@ public class AuthService : IAuthService
     {
         _logger.LogInformation("Atualizando informações de acesso do usuário");
 
-        createdUser.SetAccessToken(BC.BCrypt.HashPassword(accessKeys.AccessToken));
-        createdUser.SetRefreshToken(BC.BCrypt.HashPassword(accessKeys.RefreshToken), accessKeys.RefreshTokenExpiration);
+        createdUser.SetAccessToken(_crypt.Encrypt(accessKeys.AccessToken));
+        createdUser.SetRefreshToken(_crypt.Encrypt(accessKeys.RefreshToken), accessKeys.RefreshTokenExpiration);
         await _repository.UpdateAsync(createdUser);
     }
 

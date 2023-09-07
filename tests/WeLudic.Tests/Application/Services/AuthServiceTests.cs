@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Moq;
+using NSubstitute;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Requests.Auth;
 using WeLudic.Application.Services;
@@ -21,17 +21,17 @@ using WeLudic.Shared.AppSettings;
 using WeLudic.Shared.Models;
 using Xunit;
 using Xunit.Categories;
-using BC = BCrypt.Net;
 
 namespace WeLudic.Tests.Application.Services;
 
 [UnitTest]
 public class AuthServiceTests
 {
-    private Mock<ITokenService> _serviceMock;
-    private Mock<IUserRepository> _repositoryMock;
-    private Mock<ILogger<AuthService>> _loggerMock;
-    private Mock<IHttpContextAccessor> _httpContextMock;
+    private ITokenService _serviceMock;
+    private ICryptService _cryptMock;
+    private IUserRepository _repositoryMock;
+    private ILogger<AuthService> _loggerMock;
+    private IHttpContextAccessor _httpContextMock;
 
     private readonly Faker _faker = new("pt_BR");
 
@@ -83,9 +83,8 @@ public class AuthServiceTests
         var signUpRequest = CreateSignUpRequest(_faker.Name.FullName(), emailAddress, password, password);
 
         _repositoryMock
-            .Setup(r => r.GetByEmailAsync(It.Is<string>(p => p == emailAddress), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user)
-            .Verifiable();
+            .GetByEmailAsync(Arg.Is<string>(p => p == emailAddress), Arg.Any<CancellationToken>())
+            .Returns(user);
 
         // Act
         var act = await service.SignUpAsync(signUpRequest);
@@ -113,23 +112,20 @@ public class AuthServiceTests
         var signUpRequest = CreateSignUpRequest(_faker.Name.FullName(), _faker.Internet.Email(), password, password);
 
         _repositoryMock
-            .Setup(r => r.GetByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User)null)
-            .Verifiable();
+            .GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns((User)null);
 
         _repositoryMock
-            .Setup(r => r.CreateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user)
-            .Verifiable();
+            .CreateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .Returns(user);
 
         _serviceMock
-            .Setup(s => s.CreateAccessKeys(It.IsAny<Guid>(), It.IsAny<string>()))
-            .Returns(accessKeys)
-            .Verifiable();
+            .CreateAccessKeys(Arg.Any<Guid>(), Arg.Any<string>())
+            .Returns(accessKeys);
 
         _repositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Verifiable();
+            .UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .Wait();
 
         // Act
         var act = await service.SignUpAsync(signUpRequest);
@@ -188,9 +184,8 @@ public class AuthServiceTests
         var signInRequest = CreateSignInRequest(emailAddress, _faker.Internet.Password());
 
         _repositoryMock
-            .Setup(r => r.GetByEmailAsync(It.Is<string>(p => p == emailAddress), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User)null)
-            .Verifiable();
+            .GetByEmailAsync(Arg.Is<string>(p => p == emailAddress), Arg.Any<CancellationToken>())
+            .Returns((User)null);
 
         // Act
         var act = await service.SignInAsync(signInRequest);
@@ -209,15 +204,14 @@ public class AuthServiceTests
         var user = new Faker<User>("pt_BR")
             .RuleFor(u => u.Name, f => f.Name.FullName())
             .RuleFor(u => u.Email, f => f.Internet.Email())
-            .RuleFor(u => u.HashedPassword, f => BC.BCrypt.HashPassword(f.Internet.Password()));
+            .RuleFor(u => u.HashedPassword, f => f.Internet.Password());
 
         var emailAddress = _faker.Internet.Email();
         var signInRequest = CreateSignInRequest(emailAddress, _faker.Internet.Password());
 
         _repositoryMock
-            .Setup(r => r.GetByEmailAsync(It.Is<string>(p => p == emailAddress), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user)
-            .Verifiable();
+            .GetByEmailAsync(Arg.Is<string>(p => p == emailAddress), Arg.Any<CancellationToken>())
+            .Returns(user);
 
         // Act
         var act = await service.SignInAsync(signInRequest);
@@ -235,7 +229,7 @@ public class AuthServiceTests
         var emailAddress = _faker.Internet.Email();
         var password = _faker.Internet.Password();
         var user = new User()
-            .SetUser(_faker.Name.FullName(), emailAddress, BC.BCrypt.HashPassword(password));
+            .SetUser(_faker.Name.FullName(), emailAddress, password);
 
         var accessKeys = new AccessKeys()
             .SetAccessToken(Guid.NewGuid().ToString(), DateTime.UtcNow, DateTime.UtcNow.AddHours(4))
@@ -244,18 +238,19 @@ public class AuthServiceTests
         var signInRequest = CreateSignInRequest(emailAddress, password);
 
         _repositoryMock
-            .Setup(r => r.GetByEmailAsync(It.Is<string>(p => p == emailAddress), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user)
-            .Verifiable();
+            .GetByEmailAsync(Arg.Is<string>(p => p == emailAddress), Arg.Any<CancellationToken>())
+            .Returns(user);
 
         _serviceMock
-            .Setup(s => s.CreateAccessKeys(It.IsAny<Guid>(), It.Is<string>(p => p == emailAddress)))
-            .Returns(accessKeys)
-            .Verifiable();
+            .CreateAccessKeys(Arg.Any<Guid>(), Arg.Is<string>(p => p == emailAddress))
+            .Returns(accessKeys);
 
         _repositoryMock
-            .Setup(r => r.UpdateAsync(It.Is<User>(p => p == user), It.IsAny<CancellationToken>()))
-            .Verifiable();
+            .UpdateAsync(Arg.Is<User>(p => p == user), Arg.Any<CancellationToken>())
+            .Wait();
+
+        _cryptMock.Verify(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(true);
 
         // Act
         var act = await service.SignInAsync(signInRequest);
@@ -282,9 +277,8 @@ public class AuthServiceTests
         var refreshTokenRequest = CreateRefreshTokenRequest(Guid.NewGuid().ToString());
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User)null)
-            .Verifiable();
+            .GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((User)null);
 
         // Act
         var act = await service.RefreshAuthenticationAsync(refreshTokenRequest);
@@ -307,13 +301,12 @@ public class AuthServiceTests
             .RuleFor(u => u.Name, f => f.Name.FullName())
             .RuleFor(u => u.Email, f => f.Internet.Email())
             .RuleFor(u => u.HashedPassword, f => f.Internet.Password())
-            .RuleFor(u => u.AccessToken, f => BC.BCrypt.HashPassword(f.Random.GetHashCode().ToString()))
-            .RuleFor(u => u.RefreshToken, f => BC.BCrypt.HashPassword(f.Random.GetHashCode().ToString()));
+            .RuleFor(u => u.AccessToken, f => f.Random.GetHashCode().ToString())
+            .RuleFor(u => u.RefreshToken, f => f.Random.GetHashCode().ToString());
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user)
-            .Verifiable();
+            .GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(user);
 
         // Act
         var act = await service.RefreshAuthenticationAsync(refreshTokenRequest);
@@ -336,12 +329,11 @@ public class AuthServiceTests
         var user = new User()
             .SetUser(_faker.Name.FullName(), _faker.Internet.Email(), _faker.Internet.Password());
 
-        user.SetRefreshToken(BC.BCrypt.HashPassword(refreshToken), DateTime.UtcNow.AddDays(-2));
+        user.SetRefreshToken(refreshToken, DateTime.UtcNow.AddDays(-2));
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user)
-            .Verifiable();
+            .GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(user);
 
         // Act
         var act = await service.RefreshAuthenticationAsync(refreshTokenRequest);
@@ -363,25 +355,23 @@ public class AuthServiceTests
         var user = new User()
             .SetUser(_faker.Name.FullName(), _faker.Internet.Email(), _faker.Internet.Password());
 
-        user.SetRefreshToken(BC.BCrypt.HashPassword(refreshToken), DateTime.UtcNow.AddHours(2));
+        user.SetRefreshToken(refreshToken, DateTime.UtcNow.AddHours(2));
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user)
-            .Verifiable();
+            .GetByRefreshTokenAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(user);
 
         var accessKeys = new AccessKeys()
             .SetAccessToken(Guid.NewGuid().ToString(), DateTime.UtcNow, DateTime.UtcNow.AddHours(4))
             .SetRefreshToken(Guid.NewGuid().ToString(), DateTime.UtcNow);
 
         _serviceMock
-            .Setup(s => s.CreateAccessKeys(It.IsAny<Guid>(), It.IsAny<string>()))
-            .Returns(accessKeys)
-            .Verifiable();
+            .CreateAccessKeys(Arg.Any<Guid>(), Arg.Any<string>())
+            .Returns(accessKeys);
 
         _repositoryMock
-            .Setup(r => r.UpdateAsync(It.Is<User>(p => p == user), It.IsAny<CancellationToken>()))
-            .Verifiable();
+            .UpdateAsync(Arg.Is<User>(p => p == user), Arg.Any<CancellationToken>())
+            .Wait();
 
         // Act
         var act = await service.RefreshAuthenticationAsync(refreshTokenRequest);
@@ -403,9 +393,8 @@ public class AuthServiceTests
         const string errorMesssage = "Usuário não encontrado";
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User)null)
-            .Verifiable();
+            .GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((User)null);
 
         // Act
         var act = await service.LogoutAsync();
@@ -427,13 +416,12 @@ public class AuthServiceTests
             .RuleFor(u => u.HashedPassword, f => f.Internet.Password());
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user)
-            .Verifiable();
+            .GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(user);
 
         _repositoryMock
-            .Setup(r => r.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Verifiable();
+            .UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .Wait();
 
         // Act
         var act = await service.LogoutAsync();
@@ -450,9 +438,8 @@ public class AuthServiceTests
         const string errorMesssage = "Usuário não encontrado";
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User)null)
-            .Verifiable();
+            .GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((User)null);
 
         // Act
         var act = await service.GetCurrentUserAsync();
@@ -474,9 +461,8 @@ public class AuthServiceTests
             .RuleFor(u => u.HashedPassword, f => f.Internet.Password());
 
         _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user)
-            .Verifiable();
+            .GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(user);
 
         // Act
         var act = await service.GetCurrentUserAsync();
@@ -506,18 +492,20 @@ public class AuthServiceTests
                        new Claim(key, Guid.NewGuid().ToString())
                   }));
 
-        _serviceMock = new Mock<ITokenService>();
-        _repositoryMock = new Mock<IUserRepository>();
-        _loggerMock = new Mock<ILogger<AuthService>>();
-        _httpContextMock = new Mock<IHttpContextAccessor>();
+        _serviceMock = Substitute.For<ITokenService>();
+        _cryptMock = Substitute.For<ICryptService>();
+        _repositoryMock = Substitute.For<IUserRepository>();
+        _loggerMock = Substitute.For<ILogger<AuthService>>();
+        _httpContextMock = Substitute.For<IHttpContextAccessor>();
 
-        _httpContextMock.Setup(s => s.HttpContext.User).Returns(user);
+        _httpContextMock.HttpContext.User.Returns(user);
 
         return new AuthService(
-            _serviceMock.Object,
-            _repositoryMock.Object,
-            _httpContextMock.Object,
-            _loggerMock.Object,
+            _serviceMock,
+            _cryptMock,
+            _repositoryMock,
+            _httpContextMock,
+            _loggerMock,
             settings);
     }
 

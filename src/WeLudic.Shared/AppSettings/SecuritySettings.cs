@@ -5,6 +5,9 @@ namespace WeLudic.Shared.AppSettings;
 public sealed class SecuritySettings
 {
     [Required]
+    public string CriptographyKey { get; private init; }
+
+    [Required]
     public string ClaimKey { get; private init; }
 
     [Required]

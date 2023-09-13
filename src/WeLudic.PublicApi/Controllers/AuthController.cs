@@ -77,7 +77,7 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Retorna informações do usuário logado.
     /// </summary>
-    [HttpPost("me")]
+    [HttpGet("me")]
     [Consumes(MediaTypeNames.Application.Json)]
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]

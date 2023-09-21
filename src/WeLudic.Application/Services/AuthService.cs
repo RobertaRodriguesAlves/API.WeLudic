@@ -6,6 +6,7 @@ using WeLudic.Application.Interfaces;
 using WeLudic.Application.Requests.Auth;
 using WeLudic.Application.Responses.Auth;
 using WeLudic.Domain.Entities;
+using WeLudic.Domain.Entities.Common;
 using WeLudic.Domain.Interfaces;
 using WeLudic.Infrastructure.Security.Interfaces;
 using WeLudic.Shared.AppSettings;
@@ -20,6 +21,8 @@ public class AuthService : IAuthService
     private readonly ITokenService _service;
     private readonly ICryptService _crypt;
     private readonly IUserRepository _repository;
+    private readonly IPatientRepository _patientRepository;
+    private readonly IRouletteSessionRepository _sessionRepository;
     private readonly ILogger<AuthService> _logger;
 
     private readonly SecuritySettings _settings;
@@ -29,6 +32,8 @@ public class AuthService : IAuthService
         ITokenService service,
         ICryptService crypt,
         IUserRepository repository,
+        IPatientRepository patientRepository,
+        IRouletteSessionRepository sessionRepository,
         IHttpContextAccessor httpAccessor,
         ILogger<AuthService> logger,
         IOptions<SecuritySettings> options)
@@ -36,11 +41,12 @@ public class AuthService : IAuthService
         _service = service;
         _crypt = crypt;
         _repository = repository;
+        _patientRepository = patientRepository;
+        _sessionRepository = sessionRepository;
         _logger = logger;
         _settings = options.Value;
 
         _userId = httpAccessor.HttpContext.User.Claims.FirstOrDefault(ac => ac.Type == _settings.ClaimKey)?.Value;
-
     }
 
     public async Task<Result<SignupResponse>> SignUpAsync(SignUpRequest request)
@@ -54,11 +60,11 @@ public class AuthService : IAuthService
         var user = await _repository.GetByEmailAsync(request.Email);
         if (user is not null)
         {
-            _logger.LogError($"{request.Email} já cadastrado.");
+            _logger.LogError("Email já cadastrado.", request.Email);
             return Result.Fail(new ForbiddenError("Email já cadastrado."));
         }
 
-        _logger.LogInformation("Criando login. Nome:{user} e Email: {email}.", request.Name, request.Email);
+        _logger.LogInformation("Criando login. Nome: {user} e Email: {email}.", request.Name, request.Email);
         var createdUser = await _repository.CreateAsync(new User().SetUser(
                                                         request.Name,
                                                         request.Email,
@@ -67,7 +73,8 @@ public class AuthService : IAuthService
         _logger.LogInformation("Gerando credenciais de acesso");
 
         var accessKeys = _service.CreateAccessKeys(createdUser.Id, createdUser.Email);
-        await UpdateAccessInformationAsync(createdUser, accessKeys);
+        UpdateAccessInformation(createdUser, accessKeys);
+        await _repository.UpdateAsync(createdUser);
 
         _logger.LogInformation("Credenciais criadas e atualizadas.");
 
@@ -88,14 +95,15 @@ public class AuthService : IAuthService
 
         var user = await _repository.GetByEmailAsync(request.Email);
         if (user is null ||
-            !_crypt.Verify(request.Password, user?.HashedPassword)) 
+            !_crypt.Verify(request.Password, user?.HashedPassword))
         {
             _logger.LogError("Acesso negado, informações não encontradas ou não conferem.");
             return Result.Fail(new UnauthorizedError("Acesso negado"));
         }
 
         var accessKeys = _service.CreateAccessKeys(user.Id, user.Email);
-        await UpdateAccessInformationAsync(user, accessKeys);
+        UpdateAccessInformation(user, accessKeys);
+        await _repository.UpdateAsync(user);
 
         _logger.LogInformation("Credenciais criadas e atualizadas.");
 
@@ -123,7 +131,8 @@ public class AuthService : IAuthService
         }
 
         var accessKeys = _service.CreateAccessKeys(user.Id, user.Email);
-        await UpdateAccessInformationAsync(user, accessKeys);
+        UpdateAccessInformation(user, accessKeys);
+        await _repository.UpdateAsync(user);
 
         _logger.LogInformation("Credenciais criadas e atualizadas.");
 
@@ -132,17 +141,15 @@ public class AuthService : IAuthService
 
     public async Task<Result> LogoutAsync()
     {
-        Guid.TryParse(_userId, out var userId);
-
-        _logger.LogInformation("Consultando informações do usuario: {id}.", _userId);
-
-        var user = await _repository.GetByIdAsync(userId);
-        if (user is null)
+        if (!Guid.TryParse(_userId, out var userId))
         {
             _logger.LogError("Usuário não encontrado.");
             return Result.Fail(new NotFoundError("Usuário não encontrado"));
         }
 
+        _logger.LogInformation("Consultando informações do usuario: {id}.", userId);
+
+        var user = await _repository.GetByIdAsync(Guid.Parse(_userId));
         user.SetRefreshToken(string.Empty, null);
         await _repository.UpdateAsync(user);
 
@@ -153,29 +160,61 @@ public class AuthService : IAuthService
 
     public async Task<Result<UserResponse>> GetCurrentUserAsync()
     {
-        Guid.TryParse(_userId, out var userId);
-
-        _logger.LogInformation("Consultando informações do usuario: {id}.", _userId);
-
-        var user = await _repository.GetByIdAsync(userId);
-        if (user is null)
+        if (!Guid.TryParse(_userId, out var userId))
         {
             _logger.LogError("Usuário não encontrado.");
             return Result.Fail(new NotFoundError("Usuário não encontrado"));
         }
 
+        _logger.LogInformation("Consultando informações do usuario: {id}.", userId);
+        var user = await _repository.GetByIdAsync(userId);
         return Result.Ok(new UserResponse(user.Id, user.Name, user.Email, user.ConfirmAndAgree));
+    }
+
+    public async Task<Result<SignupPatientResponse>> SignUpPatientAsync(SignUpPatientRequest request)
+    {
+        _logger.LogInformation("Validando informações recebidas");
+
+        await request.ValidateAsync();
+        if (!request.IsValid)
+            return request.ToFail();
+
+        _logger.LogInformation("Validando existência de SessionID: {id}", request.SessionId);
+
+        if (await _sessionRepository.ExistsAsync(request.SessionId))
+        {
+            _logger.LogInformation("Criando login. Nome: {user} e Sessao: {id}.", request.Name, request.SessionId);
+            var createdPatient = await _patientRepository.CreateAsync(new Patient().SetPatient(
+                                                                      request.Name,
+                                                                      request.SessionId,
+                                                                      request.ConfirmAndAgree));
+
+            _logger.LogInformation("Gerando credenciais de acesso");
+
+            var accessKeys = _service.CreateAccessKeys(createdPatient.Id, createdPatient.Name);
+            UpdateAccessInformation(createdPatient, accessKeys);
+            await _patientRepository.UpdateAsync(createdPatient);
+
+            _logger.LogInformation("Credenciais criadas e atualizadas.");
+
+            return Result.Ok(new SignupPatientResponse(
+                new TokenResponse(accessKeys.AccessToken, accessKeys.CreatedAt, accessKeys.Expiration, accessKeys.RefreshToken),
+                new PatientResponse(createdPatient.Id, createdPatient.Name, createdPatient.ConfirmAndAgree)));
+        }
+
+        _logger.LogInformation("SessionId: {id} inexistente.", request.SessionId);
+
+        return Result.Fail(new ForbiddenError("SessionId inválida"));
     }
 
     #region Private Methods
 
-    private async Task UpdateAccessInformationAsync(User createdUser, AccessKeys accessKeys)
+    private void UpdateAccessInformation(BaseSecurityEntity credentials, AccessKeys accessKeys)
     {
         _logger.LogInformation("Atualizando informações de acesso do usuário");
 
-        createdUser.SetAccessToken(_crypt.Encrypt(accessKeys.AccessToken));
-        createdUser.SetRefreshToken(_crypt.Encrypt(accessKeys.RefreshToken), accessKeys.RefreshTokenExpiration);
-        await _repository.UpdateAsync(createdUser);
+        credentials.SetAccessToken(_crypt.Encrypt(accessKeys.AccessToken));
+        credentials.SetRefreshToken(_crypt.Encrypt(accessKeys.RefreshToken), accessKeys.RefreshTokenExpiration);
     }
 
     #endregion

@@ -19,7 +19,7 @@ public class AuthController : ControllerBase
     public AuthController(IAuthService service) => _service = service;
 
     /// <summary>
-    /// Cadastrar credenciais de acesso à aplicação
+    /// Cadastrar credenciais do usuário para acesso à aplicação
     /// </summary>
     /// <response code="200"> Retorna chaves de acesso.</response>
     /// <response code="500"></response>
@@ -31,6 +31,20 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SignUp([FromBody] SignUpRequest request)
         => (await _service.SignUpAsync(request)).ToActionResult();
+
+    /// <summary>
+    /// Cadastrar credenciais do paciente para acesso à aplicação
+    /// </summary>
+    /// <response code="200"> Retorna chaves de acesso.</response>
+    /// <response code="500"></response>
+    [AllowAnonymous]
+    [HttpPost("signuppatient")]
+    [Consumes(MediaTypeNames.Application.Json)]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(typeof(ApiResponse<SignupPatientResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> SignUpPatient([FromBody] SignUpPatientRequest request)
+        => (await _service.SignUpPatientAsync(request)).ToActionResult();
 
     /// <summary>
     /// Acessar aplicação.
@@ -80,7 +94,7 @@ public class AuthController : ControllerBase
     [HttpGet("me")]
     [Consumes(MediaTypeNames.Application.Json)]
     [Produces(MediaTypeNames.Application.Json)]
-    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PatientResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetCurrentUser()
         => (await _service.GetCurrentUserAsync()).ToActionResult();

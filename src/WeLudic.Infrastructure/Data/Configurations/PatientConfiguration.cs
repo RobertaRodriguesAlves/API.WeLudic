@@ -17,10 +17,6 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
             .IsRequired()
             .IsUnicode(false);
 
-        builder.Property(p => p.Email)
-            .IsRequired()
-            .IsUnicode(false);
-
         builder.Property(p => p.ConfirmAndAgree)
            .IsRequired();
 

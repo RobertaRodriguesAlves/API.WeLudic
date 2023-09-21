@@ -30,6 +30,8 @@ public class AuthServiceTests
     private ITokenService _serviceMock;
     private ICryptService _cryptMock;
     private IUserRepository _repositoryMock;
+    private IPatientRepository _patientRepositoryMock;
+    private IRouletteSessionRepository _rouletteSessionRepositoryMock;
     private ILogger<AuthService> _loggerMock;
     private IHttpContextAccessor _httpContextMock;
 
@@ -495,6 +497,8 @@ public class AuthServiceTests
         _serviceMock = Substitute.For<ITokenService>();
         _cryptMock = Substitute.For<ICryptService>();
         _repositoryMock = Substitute.For<IUserRepository>();
+        _patientRepositoryMock = Substitute.For<IPatientRepository>();
+        _rouletteSessionRepositoryMock = Substitute.For<IRouletteSessionRepository>();
         _loggerMock = Substitute.For<ILogger<AuthService>>();
         _httpContextMock = Substitute.For<IHttpContextAccessor>();
 
@@ -504,6 +508,8 @@ public class AuthServiceTests
             _serviceMock,
             _cryptMock,
             _repositoryMock,
+            _patientRepositoryMock,
+            _rouletteSessionRepositoryMock,
             _httpContextMock,
             _loggerMock,
             settings);

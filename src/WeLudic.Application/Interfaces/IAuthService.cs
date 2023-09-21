@@ -12,4 +12,5 @@ public interface IAuthService : IAppService, IDisposable
     Task<Result<TokenResponse>> RefreshAuthenticationAsync(RefreshAuthenticationRequest request);
     Task<Result> LogoutAsync();
     Task<Result<UserResponse>> GetCurrentUserAsync();
+    Task<Result<SignupPatientResponse>> SignUpPatientAsync(SignUpPatientRequest request);
 }

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using WeLudic.Domain.Entities;
 using WeLudic.Domain.Interfaces;
 using WeLudic.Infrastructure.Data.Context;
@@ -16,4 +17,9 @@ public class RouletteSessionRepository : BaseRepository<RouletteSession>, IRoule
 
         return roulette.Id;
     }
+
+    public async Task<bool> ExistsAsync(Guid sessionId, CancellationToken cancellationToken = default)
+       => await DbSet
+            .AsNoTracking()
+            .AnyAsync(p => p.Id.Equals(sessionId), cancellationToken);
 }

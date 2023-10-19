@@ -14,9 +14,7 @@ public static class HealthCheckExtensions
             .AddCheck<GCInfoHealthCheck>("GCInfoCheck", HealthStatus.Degraded, new string[1] { "memory" })
             .AddMySql(
                 connectionString,
-                "sql",
-                HealthStatus.Degraded,
-                new string[3] { "db", "sql", "sqlserver" });
+                failureStatus: HealthStatus.Degraded);
     }
 
     public static Task WriteResponse(HttpContext context, HealthReport report)

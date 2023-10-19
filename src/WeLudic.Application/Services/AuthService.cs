@@ -1,7 +1,9 @@
 using FluentResults;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WeLudic.Application.Hubs;
 using WeLudic.Application.Interfaces;
 using WeLudic.Application.Requests.Auth;
 using WeLudic.Application.Responses.Auth;
@@ -24,6 +26,7 @@ public class AuthService : IAuthService
     private readonly IPatientRepository _patientRepository;
     private readonly IRouletteSessionRepository _sessionRepository;
     private readonly ILogger<AuthService> _logger;
+    private readonly IHubContext<AuthenticationHub> _authHubContext;
 
     private readonly SecuritySettings _settings;
     private readonly string _userId;
@@ -36,7 +39,8 @@ public class AuthService : IAuthService
         IRouletteSessionRepository sessionRepository,
         IHttpContextAccessor httpAccessor,
         ILogger<AuthService> logger,
-        IOptions<SecuritySettings> options)
+        IOptions<SecuritySettings> options,
+        IHubContext<AuthenticationHub> authHubContext)
     {
         _service = service;
         _crypt = crypt;
@@ -45,6 +49,7 @@ public class AuthService : IAuthService
         _sessionRepository = sessionRepository;
         _logger = logger;
         _settings = options.Value;
+        _authHubContext = authHubContext;
 
         _userId = httpAccessor.HttpContext.User.Claims.FirstOrDefault(ac => ac.Type == _settings.ClaimKey)?.Value;
     }
@@ -95,7 +100,7 @@ public class AuthService : IAuthService
 
         var user = await _repository.GetByEmailAsync(request.Email);
         if (user is null ||
-            !_crypt.Verify(request.Password, user?.HashedPassword))
+            !_crypt.Verify(request.Password, user.HashedPassword))
         {
             _logger.LogError("Acesso negado, informações não encontradas ou não conferem.");
             return Result.Fail(new UnauthorizedError("Acesso negado"));
@@ -194,6 +199,8 @@ public class AuthService : IAuthService
             var accessKeys = _service.CreateAccessKeys(createdPatient.Id, createdPatient.Name);
             UpdateAccessInformation(createdPatient, accessKeys);
             await _patientRepository.UpdateAsync(createdPatient);
+
+            await _authHubContext.Clients.User(_userId).SendAsync("Connection", $"{createdPatient.Name} conectou.");
 
             _logger.LogInformation("Credenciais criadas e atualizadas.");
 

@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Serilog;
 using WeLudic.Application;
+using WeLudic.Application.Hubs;
 using WeLudic.Infrastructure;
 using WeLudic.Infrastructure.Data.Context;
 using WeLudic.PublicApi.Extensions;
@@ -37,6 +38,7 @@ try
     builder.Services.AddHttpClient();
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddSecurity(builder.Configuration, builder.Environment);
+    builder.Services.AddSignalR();
 
     builder.Services
         .AddControllers()
@@ -73,11 +75,17 @@ try
         AllowCachingResponses = false,
         ResponseWriter = HealthCheckExtensions.WriteResponse
     });
-    app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-    app.UseMiddleware<ErrorHandlerMiddleware>().UseMiddleware<SecurityHeadersMiddleware>();
+    app.UseCors(builder => builder
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowAnyOrigin());
+
+    app.UseMiddleware<ErrorHandlerMiddleware>()
+        .UseMiddleware<SecurityHeadersMiddleware>();
     app.UseRouting();
     app.UseResponseCompression();
     app.UseHttpsRedirection();
+    app.MapHub<AuthenticationHub>("/authentication");
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();

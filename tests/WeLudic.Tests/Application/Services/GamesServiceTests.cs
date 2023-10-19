@@ -111,12 +111,11 @@ public class GamesServiceTests
             .CreateSessionAsync(Arg.Any<RouletteSession>(), Arg.Any<CancellationToken>())
             .Returns(sessionId);
 
-        _sessionOptionRepositoryMock
+        await _sessionOptionRepositoryMock
             .CreateSessionOptionAsync(
                 Arg.Is<Guid>(p => p == sessionId),
                 Arg.Any<IEnumerable<int>>(),
-                Arg.Any<CancellationToken>())
-            .Wait();
+                Arg.Any<CancellationToken>());
 
         // Act
         var act = await service.CreateRouletteSessionAsync(request);

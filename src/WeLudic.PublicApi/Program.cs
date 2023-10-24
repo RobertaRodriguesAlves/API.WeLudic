@@ -78,7 +78,8 @@ try
     app.UseCors(builder => builder
         .AllowAnyHeader()
         .AllowAnyMethod()
-        .AllowAnyOrigin());
+        .AllowCredentials()
+        .SetIsOriginAllowed((_) => true));
 
     app.UseMiddleware<ErrorHandlerMiddleware>()
         .UseMiddleware<SecurityHeadersMiddleware>();

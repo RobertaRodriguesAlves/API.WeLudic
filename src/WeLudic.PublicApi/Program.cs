@@ -75,17 +75,17 @@ try
         AllowCachingResponses = false,
         ResponseWriter = HealthCheckExtensions.WriteResponse
     });
+    app.UseHttpsRedirection();
+    app.UseRouting();
+    app.UseResponseCompression();
     app.UseCors(builder => builder
+        .AllowAnyOrigin()
         .AllowAnyHeader()
         .AllowAnyMethod()
-        .AllowCredentials()
-        .SetIsOriginAllowed((_) => true));
+        .AllowCredentials());
 
     app.UseMiddleware<ErrorHandlerMiddleware>()
         .UseMiddleware<SecurityHeadersMiddleware>();
-    app.UseRouting();
-    app.UseResponseCompression();
-    app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();

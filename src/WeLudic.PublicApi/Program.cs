@@ -88,8 +88,8 @@ try
         .UseMiddleware<SecurityHeadersMiddleware>();
     app.UseAuthentication();
     app.UseAuthorization();
-    app.MapControllers();
     app.MapHub<AuthenticationHub>("/authentication");
+    app.MapControllers();
 
     // Exibe os nomes das propriedades da validação sem os espaços.
     ValidatorOptions.Global.DisplayNameResolver = (_, member, _) => member?.Name;

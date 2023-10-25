@@ -75,21 +75,15 @@ try
         AllowCachingResponses = false,
         ResponseWriter = HealthCheckExtensions.WriteResponse
     });
-    app.UseHttpsRedirection();
+    app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+    app.UseMiddleware<ErrorHandlerMiddleware>().UseMiddleware<SecurityHeadersMiddleware>();
     app.UseRouting();
     app.UseResponseCompression();
-    app.UseCors(builder => builder
-        .AllowAnyOrigin()
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials());
-
-    app.UseMiddleware<ErrorHandlerMiddleware>()
-        .UseMiddleware<SecurityHeadersMiddleware>();
+    app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();
-    app.MapHub<AuthenticationHub>("/authentication");
     app.MapControllers();
+    app.MapHub<AuthenticationHub>("/authentication");
 
     // Exibe os nomes das propriedades da validação sem os espaços.
     ValidatorOptions.Global.DisplayNameResolver = (_, member, _) => member?.Name;

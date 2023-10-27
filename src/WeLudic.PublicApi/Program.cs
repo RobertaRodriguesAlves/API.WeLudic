@@ -34,11 +34,11 @@ try
     builder.Services.AddAppServices();
     builder.Services.AddWeLudicDbContext();
 
+    builder.Services.AddSignalR();
     builder.Services.AddCors();
     builder.Services.AddHttpClient();
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddSecurity(builder.Configuration, builder.Environment);
-    builder.Services.AddSignalR();
 
     builder.Services
         .AddControllers()
@@ -77,13 +77,16 @@ try
     });
     app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
     app.UseMiddleware<ErrorHandlerMiddleware>().UseMiddleware<SecurityHeadersMiddleware>();
+
     app.UseRouting();
     app.UseResponseCompression();
     app.UseHttpsRedirection();
+
     app.UseAuthentication();
     app.UseAuthorization();
-    app.MapControllers();
+
     app.MapHub<AuthenticationHub>("/authentication");
+    app.MapControllers();
 
     // Exibe os nomes das propriedades da validação sem os espaços.
     ValidatorOptions.Global.DisplayNameResolver = (_, member, _) => member?.Name;

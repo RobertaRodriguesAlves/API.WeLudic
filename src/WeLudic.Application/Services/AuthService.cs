@@ -200,7 +200,7 @@ public class AuthService : IAuthService
             UpdateAccessInformation(createdPatient, accessKeys);
             await _patientRepository.UpdateAsync(createdPatient);
 
-            await _authHubContext.Clients.User(_userId).SendAsync("Connection", $"{createdPatient.Name} conectou.");
+            await _authHubContext.Clients.All.SendAsync("Connection", $"{createdPatient.Name} conectou.");
 
             _logger.LogInformation("Credenciais criadas e atualizadas.");
 

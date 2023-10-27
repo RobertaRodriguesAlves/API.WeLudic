@@ -34,7 +34,6 @@ try
     builder.Services.AddAppServices();
     builder.Services.AddWeLudicDbContext();
 
-    builder.Services.AddSignalR();
     builder.Services.AddCors();
     builder.Services.AddHttpClient();
     builder.Services.AddHttpContextAccessor();

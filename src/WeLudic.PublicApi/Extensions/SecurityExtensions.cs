@@ -51,5 +51,7 @@ public static class SecurityExtensions
             authOptions.AddPolicy("Bearer", authorizationPolicy);
             authOptions.FallbackPolicy = authorizationPolicy;
         });
+
+        services.AddSignalR();
     }
 }

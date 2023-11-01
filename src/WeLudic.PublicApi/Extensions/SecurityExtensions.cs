@@ -39,6 +39,18 @@ public static class SecurityExtensions
                     ValidAudience = settings.Audience,
                     ValidIssuer = settings.Issuer
                 };
+
+                bearerOptions.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context => {
+                        var accessToken = context.Request.Query["access_token"];
+                        if (!string.IsNullOrWhiteSpace(accessToken))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
         services.AddAuthorization(authOptions =>

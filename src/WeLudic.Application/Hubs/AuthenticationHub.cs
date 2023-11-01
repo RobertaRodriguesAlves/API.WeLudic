@@ -6,13 +6,8 @@ namespace WeLudic.Application.Hubs;
 [AllowAnonymous]
 public sealed class AuthenticationHub : Hub
 {
-    public async Task SendMessageAsync()
+    public async Task SendNotification(string message)
     {
-        await Clients.All.SendAsync("Connection", "Testando");
-    }
-
-    public override async Task OnConnectedAsync()
-    {
-        await Clients.All.SendAsync("Connection", $"{Context.ConnectionId} has joined");
+        await Clients.All.SendAsync("Connection", message);
     }
 }
